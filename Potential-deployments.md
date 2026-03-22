@@ -1,304 +1,243 @@
-🌊 LA JOLLA MARINE SANCTUARY ELECTROMAGNETIC RESTORATION
-La Jolla as Perfect Test Site:
-	•	Complex coastal topography for wave energy optimization
-	•	Marine Protected Area requiring gentle ecosystem intervention
-	•	Research institution proximity (Scripps) for data validation
-	•	Diverse marine ecosystem to test iron fertilization + electromagnetic restoration
-	•	Strong currents and wave action for energy harvesting
-🐋 SANCTUARY-SPECIFIC IRON WAVE PUMP DESIGN:
-La Jolla Marine Ecosystem Integration:
-
-Target Species Support:
-- Kelp forest iron nutrition (enhanced growth + CO2 sequestration)
-- Marine mammal prey restoration (iron → phytoplankton → food chain)
-- Coral reef pH buffering (electrochemical alkalinity enhancement)
-- Sea lion pupping area protection (coastal temperature regulation)
-
-
-🌍 GLOBAL SCALING FRAMEWORK:
-Open Source Advantage:
-	•	Any coastal community can adapt designs for local conditions
-	•	Data sharing creates global electromagnetic restoration network
-	•	Community contributions improve equations and coupling optimization
-	•	Indigenous knowledge integration protocols for electromagnetic sensing
-	•	Real-time collaboration during peak solar-polar events
-COMMUNITY DEPLOYMENT INSTRUCTIONS:
-
-Step 1: Download electromagnetic sensing calibration tools
-Step 2: Identify local coupling points using provided equations
-Step 3: Build iron wave pump using modular designs + local materials  
-Step 4: Deploy during optimal electromagnetic windows (provided in repo)
-Step 5: Share data to improve global restoration network
-
-
-🎯 LA JOLLA PILOT PROJECT OUTCOMES:
-Measurable Restoration Metrics:
-	•	Kelp forest growth rates
-	•	Marine pH buffering effectiveness
-	•	Energy harvesting efficiency during CME events
-	•	Iron bioavailability for marine food webs
-	•	Coastal temperature regulation
-
-  🌊 IRON WAVE PUMP ELECTROMAGNETIC RESTORATION SYSTEM
-IRON AS MULTI-FUNCTIONAL COUPLING MEDIUM:
-	•	Ferromagnetic wave pump components respond to both wave action AND magnetic field changes
-	•	Iron dissolution provides bioavailable iron for marine ecosystems (iron fertilization)
-	•	Electromagnetic induction from iron moving through Earth’s changing magnetic field
-	•	Piezoelectric coupling when iron components stress under wave action
-🔧 INTEGRATED ENERGY CAPTURE + RESTORATION DESIGN:
-Wave-Iron-Electromagnetic Pump System:
-
-Iron Wave Pump Components:
-1. Iron mesh wave chambers (capture wave energy + magnetic coupling)
-2. Iron filing suspension systems (controlled marine iron release)
-3. Ferromagnetic pump mechanisms (respond to magnetic field changes)
-4. Iron-based electrodes (electrochemical pH buffering)
-
-Energy Capture Vectors:
-- Wave kinetic energy → mechanical pumping
-- Magnetic field coupling → electrical generation  
-- Iron electrochemistry → pH restoration
-- Thermal gradients → additional energy harvesting
-
-
-ENERGY STORAGE INTEGRATION:
-Coastal Multi-Storage System:
-	•	Thermal storage: Wave action + solar heating in iron thermal mass
-	•	Electrochemical storage: Iron-air batteries using marine iron cycling
-	•	Gravitational storage: Wave-powered water elevation systems
-	•	Magnetic storage: Superconducting magnetic energy storage (if available)
-🦠 IRON FERTILIZATION + ELECTROMAGNETIC RESTORATION:
-Iron Release Mechanism:
-
-Controlled iron filing release = marine ecosystem restoration
-Iron concentration: 0.1-1.0 μg/L (optimal for phytoplankton)
-Electromagnetic timing: Release during high solar activity for maximum uptake
-pH buffering: Iron hydroxide formation buffers ocean acidity
-
-Iron Filing Wave Pump Design:
-- Iron mesh chambers release filings during optimal wave/electromagnetic conditions
-- Electromagnetic sensors control release timing based on marine conditions
-- Wave action distributes iron naturally through coastal zones
-- Pump system self-maintains through iron cycling
-
-
-THERMAL COUPLING ADVANTAGES:
-Iron Thermal Mass Systems:
-	•	Solar + wave heating of iron components during day
-	•	Thermal release during night for ecosystem temperature buffering
-	•	Thermal-electromagnetic coupling: Temperature gradients enhance electromagnetic generation
-	•	Coastal thermal regulation: Moderate temperature extremes from climate change
-🏗️ COMMUNITY-DEPLOYABLE DESIGN:
-Modular Iron Wave Pump Units:
-
-Base Unit ($50-500 range):
-- Salvaged iron components (car parts, construction materials)
-- Simple wave chamber design
-- Basic electromagnetic sensors  
-- Manual iron filing release
-
-Advanced Unit ($500-5000):
-- Engineered iron mesh systems
-- Automated electromagnetic coupling
-- Thermal storage integration
-- Controlled ecosystem iron delivery
+# Deployment Strategies
+
+Real-world deployment planning with actual numbers, honest energy budgets, and regulatory context.
+
+## La Jolla Marine Sanctuary — Pilot Site Assessment
+
+### Why La Jolla
+
+- Scripps Institution of Oceanography nearby for validation
+- Marine Protected Area with well-documented baseline ecology
+- Kelp forests, rocky reef, sandy bottom — diverse habitats for monitoring
+- California Current provides consistent wave energy and upwelling
+- Iron-limited phytoplankton communities in offshore waters
+
+### Site Conditions (measured values)
 
+| Parameter | Value | Source |
+|---|---|---|
+| Significant wave height (annual mean) | 0.8–1.2 m | CDIP Station 073 |
+| Dominant wave period | 8–14 s | CDIP Station 073 |
+| Sea surface temperature | 14–21°C (seasonal) | Scripps Pier records |
+| Surface pH | 7.95–8.15 | Scripps CO₂ monitoring |
+| Salinity | 33.2–33.8 psu | CalCOFI |
+| Current velocity (nearshore) | 0.1–0.4 m/s | HF radar, Scripps |
+| Dissolved iron (offshore) | 0.05–0.2 nM | CalCOFI |
+| Magnetic field | ~48 μT | IGRF-13 |
 
-ELECTROCHEMICAL IRON CYCLING:
+### Energy Budget for La Jolla
 
+**Wave energy available** (using measured conditions):
+```
+P = (ρ g² H² T) / (32π)
+P = (1025 × 9.81² × 0.8² × 10) / (32π)
+P ≈ 3,140 W/m of wave crest
+```
 
-Iron oxidation states in seawater:
-Fe²⁺ (bioavailable) ↔ Fe³⁺ (precipitates) + electromagnetic energy
-Wave action + electromagnetic field = enhanced iron cycling
-Result: Sustained marine ecosystem iron availability + energy generation
+A 5m-wide oscillating water column (OWC) at 12% efficiency:
+```
+P_captured = 3,140 × 5 × 0.12 ≈ 1,880 W
+```
 
+**What 1.9 kW powers**:
+- Electrochemical pH cell processing ~50 L/min of seawater
+- Controlled iron release pump and sensors
+- Data logging and telemetry (cellular/LoRa)
+- LED marker lights for navigation safety
 
+**What it does NOT power** (correcting earlier claims):
+- It does not harvest kilowatts from CME events (those affect the ionosphere at 80+ km altitude)
+- It does not multiply energy through "electromagnetic coupling cascades"
+- Salinity gradient contributes <0.01 mW at this site (no major river mouth)
+- Ocean current EM induction: ~14 μV across 2m electrodes — unmeasurable noise floor
 
-🌍 SCALING POTENTIAL:
-Community to Regional Implementation:
-	•	Individual wave pumps: Backyard tide pool restoration
-	•	Neighborhood networks: Coordinated iron release + energy sharing
-	•	Regional systems: Large-scale coastal electromagnetic restoration
-	•	Global coordination: Synchronized with solar/polar cycles for maximum impact
-Iron availability advantage: Abundant, cheap, locally available material that serves both energy capture AND ecosystem restoration simultaneously.
-Current sensing: Iron wave pumps create a regenerative feedback loop - electromagnetic energy powers ecosystem restoration that enhances coastal resilience that protects the energy systems.
-The elegance: Using iron’s natural electromagnetic and biological properties to create self-sustaining coastal restoration systems that get more effective as electromagnetic conditions intensify.
-
-🌩️ SYNTHESIS OF CURRENT SOLAR-POLAR COUPLING DATA
-SOLAR CYCLE 25 PEAK STATUS:
-We’re currently at solar maximum - NASA and NOAA announced this in October 2024, with peak activity occurring between January-October 2024  . Solar polar field reversal occurred in 2024: Northern hemisphere flipped around August 2024, Southern hemisphere around February 2025  .
-EARTH’S MAGNETIC FIELD CURRENT STATE:
-North magnetic pole moving at ~55 km/year toward Siberia, currently at 85.762°N, 139.298°E  . Field weakening continues with pole drift accelerated to 41 km/year average . New World Magnetic Model 2025 shows “blackout zones” expanding near poles where field becomes unreliable .
-🔄 OPTIMAL COUPLING WINDOW - RIGHT NOW!
-TRIPLE ELECTROMAGNETIC AMPLIFICATION ACTIVE:
-	1.	Solar Maximum Peak: Strongest solar flares of 2025 reaching X5.1 class, with CMEs traveling at 1,856 km/second 
-	2.	Polar Shift Acceleration: Unprecedented field changes - movement accelerated from 15 km/year to 55 km/year, then decelerated to 35 km/year 
-	3.	Ocean Current Electromagnetic Enhancement: Field instability + solar wind pressure = massive current generation potential
-📊 PRECISE COUPLING CALCULATIONS:
-Current Electromagnetic Energy Available:
-
-Solar Wind Impact: ~700-750 km/s speeds (current data)
-Magnetic Field Gradient: dB/dt = 41 km/year pole movement = enhanced gradient
-Ocean Current Coupling: B × v × L × sin(θ) where B is weakening field
-Peak Energy Windows: CME arrival + magnetic storm + ocean current alignment
-
-Recent Example: November 2024 X5.1 flare + geomagnetic storm + current field instability
-= Multiplicative electromagnetic energy amplification
+### Iron Release Strategy
+
+Target: maintain 0.1–1.0 μg/L dissolved Fe in a ~500m downstream plume.
 
+**Problem**: Fe²⁺ oxidizes fast in oxygenated seawater.
+```
+Half-life at pH 8.05, 17°C: ~3.5 minutes
+```
 
-Energy Harvesting Equation During Peak Coupling:
+This means a single iron release point creates a plume only ~60m long before >90% has oxidized and precipitated. Strategies:
 
-E_restoration = (Solar_CME_energy × Polar_shift_gradient × Ocean_current_velocity) × coupling_efficiency
+1. **Slow continuous release** from iron-bearing minerals (olivine, magnetite sand) in wave-agitated chambers — dissolution rate limits iron delivery to ecologically relevant concentrations
+2. **Chelated iron** (Fe-EDTA or natural ligands like siderophores) — extends residence time to hours but adds cost
+3. **Multiple release points** along current direction — each extends effective plume length
 
-Current values:
-- CME energy: X5.1 class = 10^32 joules
-- Polar gradient: 55 km/year = maximum rate
-- Ocean currents: Enhanced by geomagnetic storms
-- Coupling efficiency: Optimizable through sensor placement
+**Release rate calculation** (from `equations/iron_chemistry.py`):
+```
+To maintain 0.5 μg/L across a 10m × 10m cross-section at 0.3 m/s current:
+Mass flux = 0.5e-9 kg/L × 1000 L/m³ × 100 m² × 0.3 m/s
+         = 1.5 × 10⁻⁵ kg/s = 0.054 g/hr of dissolved Fe²⁺
 
-Result: Community-scale sensors could harvest kilowatts during peak events
+Accounting for oxidation losses (only ~10% stays dissolved at 500m):
+Actual release: ~0.5 g/hr of iron filings
+```
 
-🌊 IMMEDIATE RESTORATION STRATEGY:
-Deploy sensors now during optimal electromagnetic conditions:
-	•	Solar maximum providing frequent high-energy events
-	•	Polar shift creating maximum gradient opportunities
-	•	Ocean electromagnetic activity enhanced by space weather
-Next high-energy window: Geomagnetic activity continuing with Kp index at 4, approaching G1 storm levels 
-The timing is extraordinary - we’re at the convergence of solar maximum, polar shift acceleration, and ocean electromagnetic activity. Community restoration networks deployed now could capture unprecedented electromagnetic energy for ecosystem restoration.
-Current assessment: This is likely the optimal decade for electromagnetic ocean restoration due to the convergence of solar cycle peak and polar shift acceleration creating maximum energy availability.
+### Target Species and Ecosystem Effects
 
+| Species/Habitat | Iron Effect | pH Effect | Evidence Level |
+|---|---|---|---|
+| Giant kelp (*Macrocystis*) | Iron not limiting nearshore | pH buffering may help spore survival | Low — kelp are nitrate-limited here |
+| Phytoplankton (offshore) | Growth stimulation in HNLC conditions | Marginal effect at this scale | High (Boyd et al., 2007) |
+| Calcifying organisms | Indirect via food web | Direct benefit from higher Ω_aragonite | Moderate |
+| Sea urchins / abalone | Indirect | Improved shell formation | Moderate (Gruber et al., 2012) |
 
-☀️ SOLAR-POLAR-OCEAN ELECTROMAGNETIC COUPLING MATRIX
-CORONAL MASS EJECTION AMPLIFICATION:
-	•	CME arrival timing + polar shift gradient peak = exponential electromagnetic amplification
-	•	Solar wind pressure on weakened magnetic field creates enhanced current generation
-	•	Geomagnetic storm coupling with ocean currents = massive restoration energy windows
-🌀 TRIPLE COUPLING MATHEMATICS:
-Base ocean electromagnetic energy:
+**Honest assessment**: La Jolla nearshore waters are NOT iron-limited — the California Current upwelling provides iron from deep water. Iron fertilization makes more sense at the offshore HNLC boundary (~200 km west) or in truly iron-limited regions. La Jolla is better suited as a **pH buffering + monitoring** pilot site.
 
+## River Mouth Deployment (Generic Template)
 
-E_ocean = salinity_gradient + current_velocity + wave_action
+River mouths are the strongest sites for this approach because they provide:
+- Salinity gradients (the only place salinity energy is non-trivial)
+- Natural iron transport from terrestrial runoff
+- High biological productivity (estuarine systems)
+- Wave energy from coastal exposure
 
-Polar shift amplification:
-E_polar = E_ocean × (magnetic_gradient_factor)²
+### Energy Sources at a River Mouth
 
-Solar coupling amplification:
-E_total = E_polar × solar_wind_pressure × CME_timing_factor
+**Wave energy** (same calculation, site-specific H and T):
+```
+Typical: 2–15 kW captured depending on wave climate and device size
+```
 
-During peak events:
-E_restoration = E_total × coupling_efficiency × ecosystem_targeting
+**Salinity gradient** (this is where RED actually works):
+```
+ΔV = (RT/nF) × ln(35/2) = (8.314 × 288) / (1 × 96485) × ln(17.5)
+ΔV = 0.0248 × 2.862 = 71 mV per ion pair
 
+With a 100-pair RED stack, 0.1 m² membranes, 1 L/min flow:
+P_RED ≈ 100 × 0.071 × 0.01 × 0.40 = 28 mW
+```
 
-SOLAR CYCLE INTEGRATION:
-	•	11-year solar maximum periods: Peak CME frequency coincides with restoration scaling
-	•	Solar minimum periods: Baseline system maintenance and optimization
-	•	27-day solar rotation: Predictable high-energy windows for major restoration pulses
-AMPLIFICATION CASCADE:
-	1.	Solar wind hits weakening magnetic field
-	2.	Enhanced geomagnetic activity creates stronger ocean current electromagnetic generation
-	3.	Polar shift gradients multiply the electromagnetic energy available
-	4.	Ocean salinity/pH gradients provide restoration targeting
-	5.	Combined energy drives large-scale ecosystem restoration
-PREDICTIVE COUPLING WINDOWS:
+Still milliwatts. RED at community scale powers sensors, not restoration equipment. Industrial RED (Statkraft, REDstack) uses thousands of square meters of membrane to reach kilowatts.
 
-Optimal restoration timing = CME_forecast × polar_shift_gradient × ocean_current_alignment × ecosystem_need
+**Iron availability**: River water carries 1–100 μg/L dissolved iron plus particulate iron. The challenge at river mouths is iron *excess* causing harmful algal blooms, not iron limitation. Iron release at river mouths is counterproductive.
 
-Peak amplification when:
-- Solar maximum phase
-- CME arrival predicted
-- Magnetic field gradient steepening  
-- Ocean current electromagnetic alignment optimal
+### River Mouth Strategy
 
+Focus on **pH buffering** using wave-powered electrochemistry, not iron release:
+1. Capture wave energy via OWC or point absorber
+2. Drive electrochemical cell splitting seawater to produce alkalinity
+3. Enhance pH in estuary mixing zone where acidification stress is highest
+4. Monitor with salinity-gradient-powered sensor array (milliwatt load — good match)
 
-COMMUNITY SCALING ADVANTAGE:
-Small coastal installations become mega-restoration systems during solar-polar coupling events. A $50 sensor network could harvest kilowatts of restoration energy during peak coupling windows.
-The multiplicative effect: Solar → Polar → Ocean electromagnetic coupling creates restoration energy levels that scale exponentially rather than linearly.
-Current sensing: This transforms both solar activity AND polar shift from environmental stressors into collaborative restoration resources.
+## Device Sizing Guide
 
-🌊 ELECTROMAGNETIC OCEAN RESTORATION - COMMUNITY FRAMEWORK DEVELOPMENT
-CORE EQUATION SYSTEMS TO DEVELOP:
-1. Salinity Gradient Energy Harvesting & pH Restoration
+### Oscillating Water Column (OWC)
 
-   Electrical Potential: ΔV = (RT/nF) × ln(C₁/C₂)
-Where:
-- R = gas constant
-- T = temperature (K)
-- n = ion charge
-- F = Faraday constant
-- C₁, C₂ = salinity concentrations
+The simplest community-buildable wave energy converter.
 
-Power available: P = ΔV × I × η_coupling
-Applied to carbonate formation: CO₃²⁻ formation rate ∝ applied_current × local_pH
+```
+Chamber width: W (m) — determines power capture
+Chamber depth: must extend below wave trough
+Air column: drives a Wells turbine or simple check-valve pump
+```
 
-2. Ocean Current Electromagnetic Coupling
+**Sizing from wave conditions**:
+```
+Available power:  P_avail = (ρ g² H² T) / (32π) × W
+Captured power:   P_cap = P_avail × η_owc
 
-   Induced voltage: V = B × v × L × sin(θ)
-Where:
-- B = magnetic field strength (changing with polar shift)
-- v = current velocity
-- L = electrode separation
-- θ = angle between current and field
+η_owc typical values:
+  - Simple check-valve pump: 5–10%
+  - Wells turbine (machined): 15–25%
+  - Optimized OWC with control: 25–40%
+```
 
-During polar shift: B(t) = B₀ × decay_function(t) + oscillation_terms
-Optimal coupling: maximize sin(θ) × B(t) × v
+| Wave Height | Period | 5m OWC (10% eff.) | 5m OWC (20% eff.) |
+|---|---|---|---|
+| 0.5 m | 6 s | 120 W | 240 W |
+| 1.0 m | 8 s | 790 W | 1,570 W |
+| 1.5 m | 10 s | 2,650 W | 5,300 W |
+| 2.0 m | 12 s | 5,960 W | 11,920 W |
 
+### Electrochemical pH Cell
 
-3. Piezoelectric Wave Energy + Electrochemical Restoration
+Power requirement for meaningful local pH change:
 
-   Wave energy: E_wave = ρ × g × H² × L / 8
-Piezo conversion: V_piezo = d₃₃ × Force × geometry_factor
-Combined with pH buffering: 
-  Restoration_rate = (E_wave + E_salinity + E_current) × η_electrochemical
+```
+Seawater buffer capacity (Revelle factor ~10):
+  To shift pH by 0.1 in 1 m³ of seawater requires ~0.2 mol OH⁻
+  Electrochemical production: 96,485 C/mol ÷ efficiency
+  At 70% Faradaic efficiency: ~27,600 C = 460 W for 1 minute
 
+Continuous processing of 50 L/min (small pump):
+  Requires ~380 W sustained
+```
 
-4. Polar Shift Optimal Coupling Windows
+This matches well with a community-scale OWC in moderate wave conditions.
 
-   Magnetic field vector: B⃗(t) = B⃗₀ × e^(-t/τ) + B⃗_oscillation
-Peak coupling when: dB/dt is maximum AND ocean_current alignment optimal
-Timing windows: Predict from magnetic field weakening rate (~10%/decade)
+### Iron Release Chamber
 
+Passive dissolution from iron minerals in wave-agitated chambers:
 
-SENSOR NOISE CALIBRATION FRAMEWORK:
-For any sensor quality:
+```
+Iron filing dissolution rate in seawater:
+  ~0.01–0.1 mg/cm²/day at pH 8, 15°C (varies with grain size)
 
+For 1 kg of iron filings (surface area ~0.5 m²):
+  Release: 0.5–5 mg/day = 0.02–0.2 mg/hr
 
-Measured_signal = True_signal + Noise + Systematic_bias
-Noise characterization: σ_noise = f(temperature, humidity, sensor_age)
-Calibration: True_signal = Measured - Bias ± confidence_interval
+To deliver 0.5 g/hr dissolved Fe (see La Jolla calculation):
+  Need: ~2,500–25,000 kg of iron filings, OR
+  Use acidified chamber (pH 5-6) to accelerate dissolution 100×, OR
+  Use electrolytic dissolution powered by wave energy
+```
 
-Community protocol:
-1. Measure "quiet" baseline (no ocean activity)
-2. Characterize sensor drift over 24hr cycle  
-3. Cross-calibrate with nearby sensors
-4. Extract signal using noise profile
+Electrolytic dissolution is the practical path — use wave power to dissolve iron electrodes directly into seawater at controlled rates.
 
+## Regulatory Framework
 
-COMMUNITY IMPLEMENTATION TIERS:
-Tier 1 - Minimal Resources ($5-50):
-	•	Simple electrostatic sensors in tide pools
-	•	Voltage measurement across salinity gradients
-	•	Basic pH electrode coupling
-	•	Community data sharing for noise reduction
-Tier 2 - Moderate Resources ($50-500):
-	•	Piezoelectric wave energy harvesting
-	•	Multi-point salinity gradient arrays
-	•	Magnetic field sensors for polar shift tracking
-	•	Local electrochemical restoration cells
-Tier 3 - Advanced Resources ($500+):
-	•	Distributed sensor networks
-	•	Real-time coupling optimization
-	•	Large-scale restoration arrays
-	•	Cross-community data synthesis
-COUPLING POINT IDENTIFICATION PROTOCOL:
-Optimal locations where:
-	1.	Salinity gradients are strong: River mouths, upwelling zones, tidal mixing areas
-	2.	Ocean currents are significant: Coastal currents, strait passages, reef channels
-	3.	Magnetic field coupling is good: Align with polar shift field lines
-	4.	Ecosystem restoration is needed: Acidified zones, stressed coral reefs, shellfish beds
-Priority mapping:
+### Iron Fertilization
 
-Restoration_potential = (Salinity_gradient × Current_velocity × B_field_strength × Ecosystem_need) / Distance_to_community
+- **London Protocol** (2013 amendment): Regulates marine geoengineering including ocean iron fertilization. Legitimate scientific research may be permitted with assessment framework.
+- **Convention on Biological Diversity** (2010 Decision X/33): De facto moratorium on climate-related geoengineering except small-scale scientific research.
+- **National laws**: Vary by country. In the US, NOAA and EPA have jurisdiction over intentional ocean modifications.
 
+### Wave Energy Devices
 
+- Require permits for fixed installations in navigable waters (US Army Corps of Engineers in US)
+- Marine Protected Areas have additional restrictions
+- Environmental assessment typically required for any permanent coastal structure
 
+### Community Scale
 
+Small, temporary, research-scale deployments generally face fewer regulatory barriers than commercial-scale operations. Partner with a research institution (like Scripps at La Jolla) to operate under their research permits.
+
+## What Actually Works at Each Budget
+
+### $50–500: Monitoring Station
+
+**Build**: Arduino + pH sensor + temperature probe + SD card logger + waterproof housing.
+
+**Do**: Collect baseline pH and temperature data at your local coastal site. Log hourly for 3+ months. Share data. This is genuinely useful — long-term coastal pH records are sparse.
+
+**Power**: 18650 lithium battery + small solar panel. No wave energy needed.
+
+### $500–5,000: Wave-Powered Sensor + Passive Iron Test
+
+**Build**: Small OWC chamber (concrete/steel, 1–2m wide) + check-valve air pump + iron mineral chamber + pH/DO sensor array.
+
+**Do**: Measure whether passive iron dissolution from wave-agitated olivine sand produces measurable downstream effects. Monitor pH, dissolved oxygen, chlorophyll-a fluorescence in a contained test area (tide pool or enclosed bay).
+
+**Power**: 100–500 W from OWC drives sensors and data logging. Excess charges battery bank.
+
+### $5,000+: Active Restoration Pilot
+
+**Build**: Engineered OWC (3–5m wide) + Wells turbine + electrochemical pH cell + controlled iron dosing system + telemetry.
+
+**Do**: Sustained electrochemical pH buffering in a localized area. Controlled iron delivery experiment with before/after ecosystem monitoring. Publish results.
+
+**Power**: 1–5 kW from OWC. Sufficient for electrochemical cell + iron dosing + full sensor suite.
+
+## Scaling Considerations
+
+Individual community installations affect a small area (meters to hundreds of meters downstream). Scaling up requires:
+
+1. **Multiple installations** — each covers its local area. Effects don't "multiply."
+2. **Coordination for monitoring** — shared data standards so results are comparable.
+3. **Realistic expectations** — community-scale restoration supplements, not replaces, emissions reduction and policy action.
+
+Ocean pH is set by global CO₂ levels. Local electrochemical buffering helps local ecosystems survive while the root cause is addressed. This is triage, not cure.

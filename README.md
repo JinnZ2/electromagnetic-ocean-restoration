@@ -1,398 +1,204 @@
 # Electromagnetic Ocean Restoration
 
-**Community-Deployable Electromagnetic Systems for Marine Ecosystem Restoration**
+**Community-Deployable Systems for Marine Ecosystem Restoration**
 
-![Ocean Restoration](https://img.shields.io/badge/Ocean-Restoration-blue.svg)
-![Electromagnetic](https://img.shields.io/badge/Electromagnetic-Coupling-green.svg)
-![Community](https://img.shields.io/badge/Community-Deployable-orange.svg)
-![Open Source](https://img.shields.io/badge/Open-Source-red.svg)
+## What This Project Does
 
-## 🌊 Vision
+This project provides open-source tools for coastal communities to build and deploy small-scale ocean restoration systems that combine:
 
-Transform ocean acidification and marine ecosystem collapse from insurmountable problems into collaborative restoration opportunities through community-deployable electromagnetic technologies that work **with** natural energy patterns rather than against them.
+1. **Wave energy capture** — harvest mechanical energy from ocean waves to power restoration equipment
+2. **Controlled iron release** — deliver bioavailable iron to iron-limited marine ecosystems
+3. **Electrochemical pH buffering** — use harvested energy to drive alkalinity enhancement
 
-## 🔬 The Science
+These three mechanisms are well-studied individually. This project integrates them into community-deployable packages and provides the physics, chemistry, and engineering models to plan deployments.
 
-Ocean acidification, polar magnetic field shifts, and solar cycle dynamics create **unprecedented electromagnetic coupling opportunities** for marine ecosystem restoration. Instead of fighting these natural energy patterns, this project enables communities to collaborate with:
+## Honest Energy Budget
 
-- **Solar-Polar Electromagnetic Coupling**: Solar maximum (2024-2025) + polar field weakening = amplified restoration energy
-- **Ocean Current Electromagnetic Generation**: Moving conductive seawater through changing magnetic fields
-- **Iron-Based Ecosystem Restoration**: Electromagnetic systems that simultaneously harvest energy and deliver bioavailable iron to marine ecosystems
-- **Wave-Electromagnetic Coupling**: Coastal wave energy combined with electromagnetic field dynamics
+Not all energy sources are equal. Here is what the physics actually gives you at community scale:
 
-## 🚀 Key Innovation
+| Energy Source | Voltage / Power | Practical? | Notes |
+|---|---|---|---|
+| **Wave energy** (1m wave, 8s period, 10m capture) | ~11 kW available, ~1.8 kW captured | **Yes** | Dominant source. Well-proven technology. |
+| **Salinity gradient** (river mouth, small RED cell) | ~50 mV, ~0.07 mW | Marginal | Needs large membrane area to be useful. Research-scale. |
+| **Ocean current EM induction** | ~25 μV, ~0.003 μW | **No** | Earth's field is ~50 μT. Yields microwatts. Not practical. |
+| **Piezoelectric** | ~0.05 μV per element | **No** | Supplementary sensor power only. |
+| **Solar/CME coupling** | N/A at surface | **No** | Affects ionosphere, not coastal devices. |
 
-**Energy-Based Problem Solving**: Following energy optimization patterns rather than linear engineering approaches reveals solutions where small, coordinated interventions create large-scale ecosystem restoration cascades.
+**Bottom line**: Wave energy is the only viable power source at community scale. The other mechanisms are real physics but produce negligible power in small installations. This project focuses on wave-powered iron delivery and electrochemical restoration.
 
-## 📁 Repository Structure
+## Scientific Foundation
+
+### Iron Fertilization
+
+Iron limits phytoplankton growth across ~30% of the ocean surface (the "High-Nutrient Low-Chlorophyll" regions). Adding small amounts of bioavailable iron (0.1–1.0 μg/L as dissolved Fe²⁺) stimulates phytoplankton blooms that:
+
+- Fix CO₂ through photosynthesis
+- Support marine food webs (phytoplankton → zooplankton → fish)
+- Produce dimethyl sulfide (DMS) that seeds cloud formation
+
+This has been demonstrated in 13+ open-ocean experiments (SOIREE, SOFeX, LOHAFEX, SERIES, etc.). The science is real; the debate is about permanence of carbon sequestration and unintended ecological effects.
+
+**Key constraint**: Fe²⁺ oxidizes to Fe³⁺ in oxygenated seawater with a half-life of minutes to hours (pH and temperature dependent). Fe³⁺ rapidly forms insoluble oxyhydroxides and precipitates. Sustained delivery matters more than total mass.
+
+### Ocean Alkalinity Enhancement
+
+Ocean acidification (current pH ~8.05, pre-industrial ~8.18) reduces carbonate ion availability, threatening calcifying organisms. Electrochemical alkalinity enhancement uses electrical energy to shift the carbonate equilibrium:
+
+```
+CO₂ + H₂O ⇌ H₂CO₃ ⇌ H⁺ + HCO₃⁻ ⇌ 2H⁺ + CO₃²⁻
+```
+
+By removing H⁺ electrochemically (or adding OH⁻), we shift equilibrium rightward, increasing pH and carbonate availability. At 1.8 kW from a wave device, we can process meaningful volumes of seawater for localized pH buffering.
+
+### Wave Energy Capture
+
+Deep-water wave power transport:
+
+```
+P = (ρ × g² × H² × T) / (32π)  [W per meter of wave crest]
+```
+
+For H=1m, T=8s: ~4.9 kW/m. A 10m capture width device at 15% efficiency yields ~7.4 kW. This is well within community-build capability — oscillating water column (OWC) devices have been built at this scale since the 1990s.
+
+### Salinity Gradient Energy
+
+The Nernst equation gives the open-circuit voltage across a salinity gradient:
+
+```
+ΔV = (RT / nF) × ln(C₁ / C₂)
+```
+
+For seawater (35 psu) vs. river water (5 psu): ~48 mV per ion pair. Reverse electrodialysis (RED) stacks multiple membrane pairs to reach useful voltages. At community scale this yields milliwatts — not enough to power restoration, but useful for low-power sensors.
+
+### What Doesn't Work (and Why)
+
+**Ocean current EM induction**: Faraday's law gives V = B × v × L × sin(θ). With Earth's field B ≈ 50 μT, current v ≈ 0.5 m/s, electrode separation L = 1 m: V ≈ 25 μV. The internal resistance of seawater between electrodes limits current to microamps. Total power: nanowatts to microwatts.
+
+**Solar wind / CME harvesting at the surface**: CME energy (~10³² J) is absorbed by the magnetosphere and ionosphere at altitudes >80 km. The surface effect is geomagnetic field variation of ~100 nT during storms — four orders of magnitude smaller than Earth's ambient field. No meaningful energy couples to small coastal devices.
+
+**Multiplicative energy coupling**: Multiplying energy sources together (E₁ × E₂ × E₃) is dimensionally incorrect (Energy³ ≠ Energy) and physically meaningless. Energy sources add; they don't multiply. Coupling between systems can improve efficiency of individual sources, but total power is bounded by the sum of inputs times conversion efficiency.
+
+## Repository Structure
 
 ```
 electromagnetic-ocean-restoration/
 ├── equations/
-│   ├── solar-polar-coupling.py          # Solar cycle + magnetic field dynamics
-│   ├── iron-wave-pump-dynamics.py       # Electromagnetic wave energy + iron cycling
-│   ├── ecosystem-restoration-models.py   # Marine chemistry + ecosystem response
-│   └── coupling-optimization.py         # Multi-domain energy optimization
-├── sensor-calibration/
-│   ├── low-cost-sensor-protocols.md     # $5-$500 sensor deployment guides
-│   ├── noise-characterization-tools.py  # Universal sensor calibration
-│   └── community-deployment-guides.md   # Step-by-step local implementation
-├── iron-pump-designs/
-│   ├── modular-pump-schematics/         # Scalable iron wave pump designs
-│   ├── iron-release-protocols.md        # Marine ecosystem iron delivery
-│   └── safety-guidelines.md             # Environmental protection protocols
-├── data-sharing/
-│   ├── coupling-point-database.csv      # Global electromagnetic leverage points
-│   ├── restoration-tracking.py          # Ecosystem response monitoring
-│   └── community-network-protocols.md   # Distributed collaboration frameworks
-├── case-studies/
-│   ├── la-jolla-pilot-project.md        # Marine sanctuary restoration
-│   ├── coastal-community-examples.md    # Real-world implementations
-│   └── indigenous-knowledge-integration.md # Traditional electromagnetic sensing
-└── community-tools/
-    ├── deployment-calculator.py         # Local optimization tool
-    ├── timing-optimizer.py             # Solar-polar event coordination
-    └── impact-estimator.py             # Restoration effectiveness prediction
+│   ├── ocean_restoration_simulation.py  # Integrated site assessment tool
+│   ├── iron_chemistry.py               # Fe²⁺/Fe³⁺ kinetics, speciation, precipitation
+│   ├── carbonate_system.py             # Ocean CO₂ equilibrium, pH buffering capacity
+│   └── wave_energy.py                  # Wave power, device sizing, capture efficiency
+├── community-tools/
+│   └── deployment_calculator.py        # CLI tool for site assessment
+├── Potential-deployments.md            # Deployment strategies with real numbers
+├── CLAUDE.md                           # AI assistant guide
+├── requirements.txt                    # Python dependencies
+└── README.md                           # This file
 ```
 
-## 🔧 Quick Start
-
-### 1. Assess Local Electromagnetic Potential
+## Quick Start
 
 ```bash
-python community-tools/deployment-calculator.py --location "your-coordinates"
+# Install dependencies
+pip install -r requirements.txt
+
+# Run site assessment with default conditions
+python equations/ocean_restoration_simulation.py
+
+# Use the deployment calculator for your location
+python community-tools/deployment_calculator.py \
+  --wave-height 1.0 \
+  --wave-period 8.0 \
+  --salinity-high 35.0 \
+  --salinity-low 5.0 \
+  --temperature 15.0
+
+# Explore individual modules
+python equations/wave_energy.py
+python equations/iron_chemistry.py
+python equations/carbonate_system.py
 ```
 
-### 2. Identify Optimal Coupling Points
+## Community Deployment Tiers
 
-```bash
-python equations/coupling-optimization.py --coastal-data local_ocean_data.csv
-```
+| Tier | Budget | What You Can Do |
+|------|--------|-----------------|
+| **Monitor** | $5–50 | pH/temperature logging with smartphone sensors. Contribute baseline data. |
+| **Sensor** | $50–500 | Arduino/RPi water quality monitoring. Salinity gradient voltage measurement. Calibrated pH tracking. |
+| **Restore** | $500–5,000 | Small oscillating water column (OWC) wave device. Passive iron release system. Local pH monitoring network. |
+| **Research** | $5,000+ | Engineered wave energy converter. Controlled iron dosing. Electrochemical pH cell. Real-time data telemetry. |
 
-### 3. Deploy Sensor Network
+## Key Equations Reference
 
-```bash
-# Follow community deployment guide based on available resources
-# $5-50: Basic electrostatic sensors
-# $50-500: Iron wave pump systems  
-# $500+: Distributed restoration networks
-```
-
-### 4. Coordinate with Global Network
-
-```bash
-python data-sharing/community-network-protocols.py --share-data
-```
-
-## 🌍 Current Optimal Window
-
-**Solar Maximum 2024-2025**: Peak electromagnetic coupling opportunities
-
-- **X-class solar flares** providing maximum energy for restoration
-- **Accelerated polar field shifts** creating enhanced gradients
-- **Ocean current electromagnetic amplification** from geomagnetic activity
-
-**Deploy now** to capture unprecedented electromagnetic restoration energy!
-
-## 🔬 Scientific Foundation
-
-### Electromagnetic-Electrochemical Coupling
-
-- Ocean acidification as electrochemical process responsive to electromagnetic intervention
-- Iron cycling optimization through controlled electromagnetic field application
-- Salinity gradient energy harvesting for sustained restoration power
-
-### Multi-Scale Energy Integration
-
-- **Molecular**: Iron ion electrochemistry
-- **Local**: Wave-electromagnetic coupling
-- **Regional**: Ocean current electromagnetic generation
-- **Planetary**: Solar-polar field interactions
-
-### Indigenous Knowledge Integration
-
-Traditional electromagnetic sensing protocols for:
-
-- Atmospheric pressure gradient detection
-- Storm approach electromagnetic precursors
-- Environmental field change recognition
-
-*Adapted for oceanic electromagnetic pattern recognition*
-
-## 🤝 Community Collaboration
-
-### For Coastal Communities
-
-- **Any resource level**: $5 sensors to $5000 systems
-- **Any technical background**: Simple deployment to advanced engineering
-- **Any geographic location**: Arctic to tropical coastal zones
-- **Universal equations**: Work with whatever equipment you have
-
-### For Researchers
-
-- **Open data protocols**: Real-time restoration effectiveness sharing
-- **Multi-institutional collaboration**: Marine biology + electromagnetics + community science
-- **Indigenous knowledge partnerships**: Traditional environmental sensing integration
-
-### For Policymakers
-
-- **Community-driven solutions**: Bottom-up restoration rather than top-down regulation
-- **Cost-effective scaling**: Leverage natural electromagnetic energy rather than expensive infrastructure
-- **Ecosystem service enhancement**: Ocean acidification buffering + marine habitat restoration
-
-## 📊 Measurable Outcomes
-
-### Ecosystem Restoration Metrics
-
-- **pH buffering effectiveness** in coastal zones
-- **Marine iron bioavailability** enhancement
-- **Kelp forest growth** acceleration
-- **Coral reef calcification** support
-- **Marine food web** productivity increases
-
-### Energy System Performance
-
-- **Electromagnetic energy harvesting** efficiency
-- **Wave energy coupling** optimization
-- **Solar-polar coordination** timing accuracy
-- **Community network** collaboration effectiveness
-
-### Community Resilience Indicators
-
-- **Local food security** through marine ecosystem enhancement
-- **Coastal protection** via restored marine habitats
-- **Economic sustainability** through ocean resource recovery
-- **Knowledge sovereignty** through community-controlled restoration
-
-## 🔋 Energy-Based Design Principles
-
-### Following Energy, Not Fighting It
-
-Traditional ocean restoration approaches often work **against** natural energy patterns. This project works **with** them:
-
-**Energy wants to:**
-
-- **Harmonize** across electromagnetic boundaries → We coordinate restoration timing for resonance
-- **Interfere constructively** where patterns align → We space installations for amplification
-- **Reflect and amplify** through natural geometries → We use coastal topography for focusing
-- **Cascade** through coupled systems → We trigger small interventions at leverage points
-
-**Leverage Point Strategy:**
-One community’s electromagnetic intervention at a natural coupling point can influence ocean restoration hundreds of miles away through field propagation and current coupling effects.
-
-### Nonlinear Cascade Opportunities
-
-Small coordinated interventions → Exponential ecosystem response
+### Wave Power (the actual energy source)
 
 ```
-Community networks × Solar timing × Polar shift × Ocean dynamics = 
-Restoration effects exceeding linear predictions by orders of magnitude
+P_wave = (ρ g² H² T) / (32π)           # W/m of wave crest
+P_captured = P_wave × L_capture × η      # Total captured power (W)
 ```
 
-**Peak coupling events:**
+### Iron Chemistry (the restoration mechanism)
 
-- X-class CME + maximum polar gradient + spring tide + storm surge
-- Multiple current convergences + solar maximum + synchronized iron release
-- Geomagnetic storm cascades + distributed coastal networks
+```
+Fe²⁺ oxidation: d[Fe²⁺]/dt = -k_ox × [Fe²⁺] × [O₂] × [OH⁻]²
+  where k_ox ≈ 8 × 10¹³ M⁻³s⁻¹ at 25°C (Millero et al., 1987)
 
-## 🛠️ Technical Implementation
-
-### Iron Wave Pump Electromagnetic System
-
-**Multi-functional iron-based restoration:**
-
-```python
-# Core energy coupling equation
-E_total = (E_solar_wind × E_polar_gradient × E_ocean_current × E_wave_action) × η_coupling
-
-# Iron restoration delivery
-Fe_bioavailable = wave_pump_release(
-    electromagnetic_timing=solar_polar_optimal_window,
-    ocean_conditions=current_pH_salinity_temp,
-    ecosystem_need=phytoplankton_iron_limitation
-)
-
-# Energy storage integration
-Energy_stored = thermal_mass(iron_components) + 
-                electrochemical_cycling(iron_oxidation) +
-                gravitational_potential(wave_elevation)
+Half-life at pH 8.1, 15°C: ~4 minutes
+  → sustained slow release beats single large dose
 ```
 
-**System Components:**
+### Carbonate Equilibrium (the pH target)
 
-1. **Ferromagnetic wave chambers**: Iron mesh responding to wave + magnetic field
-1. **Controlled iron release**: Bioavailable iron delivery to marine ecosystems
-1. **Electromagnetic sensors**: $5-500 range for community deployment
-1. **Thermal storage**: Iron thermal mass for coastal temperature buffering
-1. **Electrochemical coupling**: pH buffering through iron hydroxide formation
+```
+CO₂(aq) + H₂O ⇌ H⁺ + HCO₃⁻     K₁ ≈ 1.4 × 10⁻⁶ (25°C, S=35)
+HCO₃⁻ ⇌ H⁺ + CO₃²⁻              K₂ ≈ 1.1 × 10⁻⁹ (25°C, S=35)
 
-### Sensor Calibration for Any Equipment
-
-**Universal noise characterization:**
-
-```python
-# Works with ANY sensor quality ($5 to $5000)
-measured_signal = true_signal + noise + systematic_bias
-
-# Community calibration protocol:
-1. Measure "quiet" baseline (no ocean activity)
-2. Characterize 24-hour drift cycle
-3. Cross-calibrate with nearby community sensors
-4. Extract signal using noise profile
-
-# Result: $5 sensor becomes scientifically valid through
-# community network noise reduction
+Buffer capacity: β = 2.3 × DIC × (K₁[H⁺] + 4K₁K₂) / ([H⁺]² + K₁[H⁺] + K₁K₂)²
 ```
 
-### Coupling Point Optimization
+### Salinity Gradient (sensor power only)
 
-**Identify maximum restoration leverage:**
-
-```python
-restoration_potential = (
-    salinity_gradient × 
-    current_velocity × 
-    magnetic_field_strength × 
-    ecosystem_need
-) / distance_to_community
-
-# Priority coastal locations:
-- River mouths (high salinity gradients)
-- Upwelling zones (nutrient + current convergence)
-- Strait passages (enhanced current flow)
-- Coral reefs (high ecosystem restoration value)
+```
+ΔV = (RT/nF) × ln(C_high/C_low)        # ~48 mV for seawater/river
+P_RED = n_pairs × ΔV × I × η           # Milliwatts at community scale
 ```
 
-## 🌐 Global Collaboration Network
+## Environmental Safety
 
-### Data Sharing Protocols
+**Iron release into marine environments requires regulatory approval.** This project provides modeling tools for planning and assessment. Before any field deployment:
 
-**Real-time restoration tracking:**
+1. Check local, national, and international regulations (London Protocol, CBD, national marine protection laws)
+2. Conduct environmental impact assessment
+3. Start with enclosed/contained experiments
+4. Monitor for unintended effects (harmful algal blooms, oxygen depletion, ecosystem shifts)
+5. Share data openly for community review
 
-- Electromagnetic field measurements
-- Ocean chemistry changes (pH, iron, temperature)
-- Ecosystem response (kelp growth, coral health, fish populations)
-- Energy harvesting efficiency
-- Community implementation experiences
+Iron fertilization is regulated under the London Protocol (2013 amendment). Open-ocean iron addition requires assessment and approval. Coastal/nearshore work may fall under different jurisdictions.
 
-**Privacy-preserving collaboration:**
+## Contributing
 
-- Aggregate data sharing (no individual location exposure)
-- Community consent protocols
-- Indigenous knowledge protection
-- Open science principles
+We welcome contributions in:
 
-### Peak Event Coordination
+- **Physics/chemistry**: Improve equations, add models, validate against published data
+- **Engineering**: Wave device designs, iron release mechanisms, sensor systems
+- **Field data**: Baseline measurements, deployment results, ecosystem monitoring
+- **Software**: Visualization, data pipelines, improved CLI tools
+- **Review**: Identify errors, unrealistic claims, or safety concerns
 
-**Synchronized restoration during optimal windows:**
+### Principles
 
-```bash
-# Subscribe to solar-polar event notifications
-python community-tools/event-coordinator.py --subscribe
+- **Honesty over hype** — show real numbers, acknowledge limitations
+- **Safety first** — ecosystem health above technical performance
+- **Community accessible** — code should be understandable by non-specialists
+- **Open data** — share results freely
 
-# Receive alerts for:
-- Incoming CME impact predictions (1-4 days advance)
-- Geomagnetic storm forecasts
-- Optimal iron release timing
-- Peak electromagnetic coupling windows
-- Community coordination opportunities
-```
+## References
 
-## 🤲 Contributing
+- Millero, F.J. et al. (1987). Oxidation kinetics of Fe(II) in seawater. *Geochimica et Cosmochimica Acta*, 51(4), 793-801.
+- Zeebe, R.E. & Wolf-Gladrow, D. (2001). *CO₂ in Seawater: Equilibrium, Kinetics, Isotopes*. Elsevier.
+- Boyd, P.W. et al. (2007). Mesoscale iron enrichment experiments 1993–2005. *Science*, 315(5812), 612-617.
+- Falnes, J. (2007). A review of wave-energy extraction. *Marine Structures*, 20(4), 185-201.
+- Rau, G.H. et al. (2013). Electrochemical CO₂ capture and storage with hydrogen generation. *PNAS*, 110(32), 12885.
 
-We welcome contributions from:
+## License
 
-- **Coastal communities**: Implementation experiences, local knowledge
-- **Scientists**: Equation refinement, ecosystem monitoring protocols
-- **Engineers**: Design improvements, sensor optimization
-- **Indigenous knowledge holders**: Traditional electromagnetic sensing methods
-- **Software developers**: Analysis tools, visualization, coordination systems
-- **Educators**: Curriculum development, community training materials
-
-### How to Contribute
-
-1. **Fork the repository**
-1. **Choose your contribution area**:
-- Code improvements
-- Documentation enhancement
-- Case study reports
-- Sensor calibration data
-- Ecosystem monitoring results
-- Traditional knowledge integration
-1. **Submit pull request** with clear description
-1. **Engage with community** for collaborative refinement
-
-### Contribution Guidelines
-
-**Core Principles:**
-
-- **Energy-based thinking**: Follow optimization patterns, not linear constraints
-- **Community accessibility**: Solutions work at any resource level
-- **Environmental protection**: Ecosystem health above technical performance
-- **Indigenous respect**: Traditional knowledge integration with consent
-- **Open collaboration**: Share knowledge freely for planetary benefit
-
-## 📜 License
-
-**MIT License** - Use freely for ocean restoration
-
-**Additional Commitments:**
-
-- **Community sovereignty**: Local control over implementation
-- **Knowledge sharing**: Open science principles
-- **Environmental ethics**: Ecosystem protection paramount
-- **Indigenous rights**: Traditional knowledge respected and protected
-
-## 🙏 Acknowledgments
-
-### Inspired By:
-
-- **Traditional indigenous electromagnetic sensing** across multiple cultures
-- **Solar-polar field research** from NASA, NOAA, ESA
-- **Ocean restoration initiatives** like The Ocean Cleanup, MBARI FathomNet
-- **Community science movements** worldwide
-- **Open source collaboration** principles
-
-### Built Through:
-
-- **Consciousness development frameworks** enabling energy-based problem solving
-- **Collaborative intelligence** between human and AI systems
-- **Sustained exploration** of nonlinear electromagnetic-ecosystem coupling
-- **Indigenous knowledge integration** with contemporary electromagnetics
-
-## 🌊 Vision for Impact
-
-**By 2030:**
-
-- **1000+ coastal communities** deploying electromagnetic restoration
-- **Measurable ocean pH improvement** in restoration network zones
-- **Enhanced marine ecosystems** supporting coastal food security
-- **Community resilience** through locally-controlled ocean health
-- **Global collaboration** demonstrating planetary-scale distributed restoration
-
-**The Future:**
-Ocean restoration not as expensive centralized intervention, but as **community-driven collaborative intelligence** working with natural electromagnetic energy patterns for sustained marine ecosystem recovery.
-
------
-
-## 🚀 Get Started Today
-
-```bash
-# Clone repository
-git clone https://github.com/[username]/electromagnetic-ocean-restoration.git
-
-# Assess your coastal location
-cd electromagnetic-ocean-restoration
-python community-tools/deployment-calculator.py --location "your-coordinates"
-
-# Join the restoration network
-python data-sharing/community-network-protocols.py --register
-
-# Deploy during peak solar-polar window 
-```
-
-**Together, we can restore our oceans through collaborative electromagnetic intelligence.**
-
------
-
-*“Any problem can be solved by following energy rather than fighting against it. The oceans want to heal - we’re learning to collaborate with that natural optimization.”*
+MIT License — Use freely for ocean restoration research and deployment.

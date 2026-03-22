@@ -1,337 +1,412 @@
 """
-Ocean Electromagnetic Restoration Simulation
+Ocean Restoration Simulation — Integrated Site Assessment
 
-Models three physically validated energy harvesting mechanisms for coastal
-electromagnetic restoration systems, with realistic parameter ranges.
+Combines wave energy capture, iron chemistry, and carbonate system models
+to assess a complete ocean restoration deployment.
 
-Energy sources modeled:
-  1. Salinity gradient (reverse electrodialysis) — Nernst equation
-  2. Ocean current electromagnetic induction — Faraday's law
-  3. Wave energy — linear wave theory
+This is the main entry point for running integrated simulations. It imports
+from the individual physics modules:
+  - wave_energy.py: Wave power and OWC device sizing
+  - iron_chemistry.py: Fe²⁺/Fe³⁺ kinetics and plume modeling
+  - carbonate_system.py: pH buffering and alkalinity enhancement
 
-Iron dispersal is modeled as a simple advection-diffusion process.
+Usage:
+    python equations/ocean_restoration_simulation.py
 
-WARNING: This is a simplified planning tool. Real deployments require
-site-specific oceanographic data and environmental impact assessment.
-Do NOT deploy iron into marine environments without regulatory approval.
+WARNING: This is a planning tool. Real deployments require site-specific
+oceanographic data, environmental impact assessment, and regulatory approval.
 """
 
 import math
+import sys
+import os
 from dataclasses import dataclass, field
 from typing import Optional
 
+# Add parent directory to path for imports when run directly
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from wave_energy import (
+    WaveConditions, OWCDevice, deep_water_wave_power,
+    owc_efficiency, calculate_owc_performance,
+)
+from iron_chemistry import (
+    SeawaterConditions, fe2_half_life, fe3_solubility,
+    iron_dissolution_rate, simulate_iron_plume,
+)
+from carbonate_system import (
+    solve_carbonate_system, alkalinity_needed_for_pH_shift,
+)
+
 # Physical constants
 R = 8.314          # Gas constant (J/mol·K)
-F = 96485.0        # Faraday constant (C/mol)
+F_CONST = 96485.0  # Faraday constant (C/mol)
 RHO_SW = 1025.0    # Seawater density (kg/m³)
-G = 9.81           # Gravitational acceleration (m/s²)
-MU_0 = 4e-7 * math.pi  # Vacuum permeability (H/m)
 
 
 @dataclass
-class SiteConditions:
-    """Oceanographic conditions at a deployment site."""
-    # Salinity gradient
-    salinity_high: float = 35.0    # psu (ocean side)
-    salinity_low: float = 5.0     # psu (river mouth)
-    temperature_K: float = 288.0  # Water temperature (K), ~15°C
-
-    # Ocean current
-    current_velocity: float = 0.5  # m/s
-    magnetic_field: float = 50e-6  # Earth's field strength (T), typical mid-latitude
-    electrode_separation: float = 1.0  # m
-    current_field_angle_deg: float = 90.0  # Angle between current and B field
+class SiteConfig:
+    """Complete site configuration for integrated simulation."""
+    # Location
+    name: str = "Generic Coastal Site"
 
     # Wave conditions
-    wave_height: float = 1.0      # Significant wave height (m)
-    wave_period: float = 8.0      # Wave period (s)
-    wave_crest_length: float = 10.0  # Capture width (m)
+    wave_height_m: float = 1.0
+    wave_period_s: float = 8.0
+    summer_Hs_m: float = 0.6
+    winter_Hs_m: float = 1.5
 
-    # Iron dispersal
-    iron_release_rate_kg_per_hr: float = 0.001  # kg/hr of iron filings
-    diffusion_coefficient: float = 1e-9  # m²/s (molecular diffusion of Fe in seawater)
-    current_speed_for_advection: float = 0.3  # m/s
+    # Seawater
+    temperature_C: float = 15.0
+    salinity_psu: float = 35.0
+    pH: float = 8.05
+    DIC_umol_kg: float = 2050.0
+    dissolved_O2_umol_kg: float = 250.0
 
-    # System efficiencies
-    salinity_efficiency: float = 0.30   # Typical RED membrane efficiency
-    induction_efficiency: float = 0.10  # Small-scale electromagnetic harvesting
-    wave_efficiency: float = 0.15       # Small-scale wave energy capture
-    piezo_d33: float = 500e-12          # Piezoelectric coefficient (C/N), PZT ceramic
-    piezo_force: float = 100.0          # Wave force on element (N)
+    # Salinity gradient (only meaningful at river mouths)
+    salinity_low_psu: float = 35.0   # same as ocean = no gradient
+
+    # Device
+    owc_width_m: float = 5.0
+    owc_depth_m: float = 3.0
+    turbine_type: str = "wells"
+
+    # Iron release
+    iron_release_ug_hr: float = 500.0  # μg/hr as dissolved Fe
+    iron_mineral: str = "iron_filings"
+    iron_surface_area_cm2: float = 5000.0  # for passive dissolution
+
+    # Current
+    current_speed_m_s: float = 0.3
+
+    # pH restoration target
+    target_pH: float = 8.15
+    flow_rate_L_min: float = 50.0
 
 
 @dataclass
-class SimulationResult:
-    """Results from a single simulation timestep or steady-state calculation."""
-    # Power from each source (watts)
-    salinity_power_W: float = 0.0
-    induction_power_W: float = 0.0
+class IntegratedResult:
+    """Complete assessment results."""
+    # Energy
     wave_power_W: float = 0.0
+    salinity_power_mW: float = 0.0
     total_power_W: float = 0.0
+    annual_energy_kWh: float = 0.0
 
-    # Voltages
-    salinity_voltage_V: float = 0.0
-    induction_voltage_V: float = 0.0
-    piezo_voltage_V: float = 0.0
+    # pH restoration
+    alkalinity_power_W: float = 0.0
+    pH_shift_possible: float = 0.0
+    power_surplus_W: float = 0.0
 
-    # Iron dispersal
-    iron_concentration_at_1km_ug_L: float = 0.0
-    iron_plume_radius_m: float = 0.0
+    # Iron
+    fe2_half_life_min: float = 0.0
+    passive_dissolution_ug_hr: float = 0.0
+    fe2_at_100m_nM: float = 0.0
+    fe2_at_500m_nM: float = 0.0
+    effective_plume_length_m: float = 0.0
 
-    # Feasibility flags
+    # Carbonate system
+    omega_aragonite_current: float = 0.0
+    omega_aragonite_restored: float = 0.0
+    pCO2_current_uatm: float = 0.0
+
+    # Feasibility
     warnings: list = field(default_factory=list)
+    recommendations: list = field(default_factory=list)
 
 
-def salinity_gradient_voltage(c_high: float, c_low: float, temp_K: float,
-                               ion_charge: int = 1) -> float:
-    """Nernst equation for salinity gradient potential.
+def run_integrated_assessment(config: Optional[SiteConfig] = None
+                                ) -> IntegratedResult:
+    """Run complete integrated site assessment.
 
-    ΔV = (RT / nF) × ln(C₁ / C₂)
-
-    Args:
-        c_high: Higher salinity concentration (psu or proportional)
-        c_low: Lower salinity concentration (psu or proportional)
-        temp_K: Temperature in Kelvin
-        ion_charge: Ion charge number (1 for Na⁺/Cl⁻)
-
-    Returns:
-        Voltage in volts (open-circuit, single ion pair)
-    """
-    if c_low <= 0 or c_high <= 0:
-        return 0.0
-    return (R * temp_K) / (ion_charge * F) * math.log(c_high / c_low)
-
-
-def ocean_current_induction_voltage(B: float, v: float, L: float,
-                                      theta_deg: float) -> float:
-    """Faraday's law: EMF from conductive seawater moving through magnetic field.
-
-    V = B × v × L × sin(θ)
+    Chains together wave energy, iron chemistry, and carbonate system
+    models to evaluate a restoration deployment.
 
     Args:
-        B: Magnetic field strength (Tesla)
-        v: Current velocity (m/s)
-        L: Electrode separation (m)
-        theta_deg: Angle between current direction and field (degrees)
+        config: Site configuration. Uses defaults if None.
 
     Returns:
-        Induced voltage in volts
+        IntegratedResult with complete assessment.
     """
-    theta_rad = math.radians(theta_deg)
-    return B * v * L * math.sin(theta_rad)
+    if config is None:
+        config = SiteConfig()
 
+    result = IntegratedResult()
 
-def wave_power_per_meter(wave_height: float, wave_period: float) -> float:
-    """Deep-water wave power per meter of wave crest.
-
-    P = (ρ × g² × H² × T) / (32π)  [W/m]
-
-    This is the standard linear wave theory result for power transport.
-
-    Args:
-        wave_height: Significant wave height (m)
-        wave_period: Wave period (s)
-
-    Returns:
-        Power in watts per meter of wave crest
-    """
-    return (RHO_SW * G**2 * wave_height**2 * wave_period) / (32 * math.pi)
-
-
-def iron_concentration_downstream(release_rate_kg_s: float,
-                                   current_speed: float,
-                                   diffusion_coeff: float,
-                                   distance_m: float) -> float:
-    """Steady-state iron concentration downstream using simplified advection-diffusion.
-
-    Models a continuous point source in a uniform current. Returns centerline
-    concentration at a given distance downstream.
-
-    C(x) = Q / (2π × D × x / v)  [simplified 2D steady-state]
-
-    Converted to μg/L for comparison with ecological targets (0.1-1.0 μg/L).
-
-    Args:
-        release_rate_kg_s: Iron release rate (kg/s)
-        current_speed: Advection velocity (m/s)
-        diffusion_coeff: Turbulent + molecular diffusion coefficient (m²/s)
-        distance_m: Distance downstream (m)
-
-    Returns:
-        Concentration in μg/L (micrograms per liter)
-    """
-    if distance_m <= 0 or current_speed <= 0:
-        return 0.0
-
-    # Use turbulent diffusion which dominates in ocean (~0.01-1 m²/s)
-    D_turb = max(diffusion_coeff, 0.01)  # Minimum turbulent diffusion
-
-    # 2D Gaussian plume centerline concentration (kg/m³)
-    sigma = math.sqrt(2 * D_turb * distance_m / current_speed)
-    if sigma <= 0:
-        return 0.0
-    conc_kg_m3 = release_rate_kg_s / (current_speed * math.pi * sigma**2)
-
-    # Convert kg/m³ → μg/L (1 kg/m³ = 1e9 μg/L)
-    return conc_kg_m3 * 1e9
-
-
-def run_simulation(site: Optional[SiteConditions] = None) -> SimulationResult:
-    """Run steady-state energy and iron dispersal simulation for a site.
-
-    Args:
-        site: Site conditions. Uses defaults (moderate coastal site) if None.
-
-    Returns:
-        SimulationResult with power estimates, voltages, and iron dispersal.
-    """
-    if site is None:
-        site = SiteConditions()
-
-    result = SimulationResult()
-
-    # --- Energy Source 1: Salinity Gradient ---
-    result.salinity_voltage_V = salinity_gradient_voltage(
-        site.salinity_high, site.salinity_low, site.temperature_K
+    # --- 1. WAVE ENERGY ---
+    waves = WaveConditions(
+        significant_height_m=config.wave_height_m,
+        peak_period_s=config.wave_period_s,
+        summer_Hs_m=config.summer_Hs_m,
+        winter_Hs_m=config.winter_Hs_m,
     )
-    # Realistic current from small RED cell: ~1-10 mA
-    estimated_current_A = 0.005
-    result.salinity_power_W = (
-        result.salinity_voltage_V * estimated_current_A * site.salinity_efficiency
+    device = OWCDevice(
+        chamber_width_m=config.owc_width_m,
+        chamber_depth_m=config.owc_depth_m,
+        turbine_type=config.turbine_type,
+    )
+    wave_result = calculate_owc_performance(waves, device)
+    result.wave_power_W = wave_result.captured_power_W
+    result.annual_energy_kWh = wave_result.annual_energy_kWh
+
+    # --- 2. SALINITY GRADIENT (usually negligible) ---
+    if config.salinity_low_psu < config.salinity_psu - 1.0:
+        T_K = config.temperature_C + 273.15
+        delta_V = (R * T_K / F_CONST) * math.log(config.salinity_psu / config.salinity_low_psu)
+        # Small RED cell: ~5 mA, 30% efficiency
+        result.salinity_power_mW = delta_V * 0.005 * 0.30 * 1000
+    else:
+        result.salinity_power_mW = 0.0
+
+    result.total_power_W = result.wave_power_W + result.salinity_power_mW / 1000
+
+    # --- 3. IRON CHEMISTRY ---
+    sw_conditions = SeawaterConditions(
+        temperature_C=config.temperature_C,
+        salinity_psu=config.salinity_psu,
+        pH=config.pH,
+        dissolved_O2_umol_kg=config.dissolved_O2_umol_kg,
     )
 
-    # --- Energy Source 2: Ocean Current Induction ---
-    result.induction_voltage_V = ocean_current_induction_voltage(
-        site.magnetic_field, site.current_velocity,
-        site.electrode_separation, site.current_field_angle_deg
-    )
-    # Realistic load current for small electrodes in seawater
-    induction_current_A = 0.001
-    result.induction_power_W = (
-        result.induction_voltage_V * induction_current_A * site.induction_efficiency
-    )
+    result.fe2_half_life_min = fe2_half_life(
+        config.temperature_C, config.salinity_psu,
+        config.pH, config.dissolved_O2_umol_kg
+    ) / 60.0
 
-    # --- Energy Source 3: Wave Energy ---
-    power_per_m = wave_power_per_meter(site.wave_height, site.wave_period)
-    result.wave_power_W = power_per_m * site.wave_crest_length * site.wave_efficiency
-
-    # --- Total Power (additive, NOT multiplicative) ---
-    result.total_power_W = (
-        result.salinity_power_W +
-        result.induction_power_W +
-        result.wave_power_W
+    result.passive_dissolution_ug_hr = iron_dissolution_rate(
+        config.iron_surface_area_cm2, config.pH,
+        config.temperature_C, config.iron_mineral
     )
 
-    # --- Piezoelectric Voltage (supplementary) ---
-    result.piezo_voltage_V = site.piezo_d33 * site.piezo_force
-
-    # --- Iron Dispersal ---
-    release_rate_kg_s = site.iron_release_rate_kg_per_hr / 3600.0
-    result.iron_concentration_at_1km_ug_L = iron_concentration_downstream(
-        release_rate_kg_s, site.current_speed_for_advection,
-        site.diffusion_coefficient, 1000.0
-    )
-    # Plume radius at 1km downstream (2-sigma)
-    D_turb = max(site.diffusion_coefficient, 0.01)
-    result.iron_plume_radius_m = 2 * math.sqrt(
-        2 * D_turb * 1000.0 / site.current_speed_for_advection
+    # Iron plume
+    plume = simulate_iron_plume(
+        config.iron_release_ug_hr, config.current_speed_m_s,
+        sw_conditions, max_distance_m=1000.0, steps=100
     )
 
-    # --- Feasibility Warnings ---
-    if result.total_power_W < 0.001:
+    # Extract key plume values
+    for dist, fe2, total in plume:
+        if abs(dist - 100) < 15:
+            result.fe2_at_100m_nM = fe2
+        if abs(dist - 500) < 15:
+            result.fe2_at_500m_nM = fe2
+
+    # Effective plume length (where Fe²⁺ > 1.8 nM = 0.1 μg/L)
+    threshold_nM = 1.8  # 0.1 μg/L
+    result.effective_plume_length_m = 0.0
+    for dist, fe2, total in plume:
+        if fe2 >= threshold_nM:
+            result.effective_plume_length_m = dist
+
+    # --- 4. CARBONATE SYSTEM ---
+    current_state = solve_carbonate_system(
+        config.DIC_umol_kg, config.pH,
+        config.temperature_C, config.salinity_psu
+    )
+    result.omega_aragonite_current = current_state.omega_aragonite
+    result.pCO2_current_uatm = current_state.pCO2_uatm
+
+    restored_state = solve_carbonate_system(
+        config.DIC_umol_kg, config.target_pH,
+        config.temperature_C, config.salinity_psu
+    )
+    result.omega_aragonite_restored = restored_state.omega_aragonite
+
+    # --- 5. pH RESTORATION ENERGY BUDGET ---
+    alk_result = alkalinity_needed_for_pH_shift(
+        config.pH, config.target_pH,
+        config.DIC_umol_kg, config.temperature_C,
+        config.salinity_psu, volume_m3=1.0
+    )
+    result.alkalinity_power_W = alk_result["power_W_at_50Lmin"]
+    if result.alkalinity_power_W > 0:
+        result.pH_shift_possible = config.target_pH - config.pH
+    result.power_surplus_W = result.total_power_W - result.alkalinity_power_W
+
+    # --- 6. FEASIBILITY ASSESSMENT ---
+    if result.total_power_W < 10:
         result.warnings.append(
-            "Total power < 1 mW. Insufficient for active systems; "
-            "consider passive iron release only."
+            f"Very low power ({result.total_power_W:.1f} W). "
+            "Only passive monitoring is feasible."
         )
-    if result.induction_voltage_V < 1e-6:
+
+    if result.alkalinity_power_W > result.total_power_W:
+        deficit = result.alkalinity_power_W - result.total_power_W
         result.warnings.append(
-            f"Induction voltage extremely low ({result.induction_voltage_V:.2e} V). "
-            "Ocean current EM harvesting is not practical at this scale."
+            f"pH restoration requires {result.alkalinity_power_W:.0f} W but only "
+            f"{result.total_power_W:.0f} W available (deficit: {deficit:.0f} W). "
+            "Reduce flow rate or increase device size."
         )
-    target_low, target_high = 0.1, 1.0
-    conc = result.iron_concentration_at_1km_ug_L
-    if conc > target_high:
+
+    if result.fe2_half_life_min < 5:
         result.warnings.append(
-            f"Iron concentration at 1 km ({conc:.2f} μg/L) exceeds target range. "
-            "Reduce release rate to avoid ecological harm."
+            f"Fe²⁺ half-life is {result.fe2_half_life_min:.1f} min — iron oxidizes "
+            "very fast. Use slow continuous release, not batch dosing."
         )
-    elif conc < target_low and release_rate_kg_s > 0:
+
+    if result.effective_plume_length_m < 50:
         result.warnings.append(
-            f"Iron concentration at 1 km ({conc:.4f} μg/L) below effective range. "
-            "Consider higher release rate or closer deployment."
+            f"Effective iron plume only {result.effective_plume_length_m:.0f} m long. "
+            "Consider chelated iron or multiple release points."
+        )
+
+    if config.pH > 8.15:
+        result.recommendations.append(
+            "Site pH is already above target. Focus on iron delivery, "
+            "not pH buffering."
+        )
+
+    if result.power_surplus_W > 100:
+        result.recommendations.append(
+            f"Power surplus of {result.power_surplus_W:.0f} W available for "
+            "sensors, data logging, and telemetry."
+        )
+
+    if result.passive_dissolution_ug_hr < config.iron_release_ug_hr * 0.1:
+        result.recommendations.append(
+            f"Passive dissolution ({result.passive_dissolution_ug_hr:.1f} μg/hr) is much "
+            f"less than target release ({config.iron_release_ug_hr:.0f} μg/hr). "
+            "Use electrolytic dissolution powered by wave energy."
         )
 
     return result
 
 
-def format_report(result: SimulationResult, site: Optional[SiteConditions] = None) -> str:
-    """Format simulation results as a readable report."""
-    if site is None:
-        site = SiteConditions()
+def format_assessment(result: IntegratedResult,
+                       config: Optional[SiteConfig] = None) -> str:
+    """Format integrated assessment as readable report."""
+    if config is None:
+        config = SiteConfig()
 
     lines = [
-        "=" * 60,
-        "  OCEAN ELECTROMAGNETIC RESTORATION — SITE ASSESSMENT",
-        "=" * 60,
+        "=" * 70,
+        f"  INTEGRATED OCEAN RESTORATION ASSESSMENT: {config.name}",
+        "=" * 70,
         "",
-        "ENERGY SOURCES (realistic steady-state estimates)",
-        "-" * 50,
-        f"  Salinity gradient (RED):  {result.salinity_voltage_V * 1000:.1f} mV  →  "
-        f"{result.salinity_power_W * 1000:.3f} mW",
-        f"  Ocean current induction:  {result.induction_voltage_V * 1e6:.1f} μV  →  "
-        f"{result.induction_power_W * 1e6:.3f} μW",
-        f"  Wave energy capture:      {result.wave_power_W:.1f} W",
-        f"  Piezoelectric (supplement): {result.piezo_voltage_V * 1e6:.1f} μV",
+        "  SITE CONDITIONS",
+        "  " + "-" * 66,
+        f"    Waves:    Hs={config.wave_height_m:.1f} m, Tp={config.wave_period_s:.0f} s "
+        f"(seasonal: {config.summer_Hs_m:.1f}–{config.winter_Hs_m:.1f} m)",
+        f"    Water:    T={config.temperature_C:.1f}°C, S={config.salinity_psu:.1f} psu, "
+        f"pH={config.pH:.2f}",
+        f"    Current:  {config.current_speed_m_s:.1f} m/s",
+        f"    DIC:      {config.DIC_umol_kg:.0f} μmol/kg",
         "",
-        f"  TOTAL HARVESTABLE POWER:  {result.total_power_W:.2f} W",
-        "",
-        "IRON DISPERSAL",
-        "-" * 50,
-        f"  Release rate:             {site.iron_release_rate_kg_per_hr * 1000:.1f} g/hr",
-        f"  Concentration at 1 km:    {result.iron_concentration_at_1km_ug_L:.4f} μg/L",
-        f"  Target range:             0.1 – 1.0 μg/L",
-        f"  Plume radius at 1 km:     {result.iron_plume_radius_m:.0f} m",
-        "",
+        "  ENERGY BUDGET",
+        "  " + "-" * 66,
+        f"    Wave energy ({config.owc_width_m:.0f}m {config.turbine_type} OWC):  "
+        f"{result.wave_power_W:.0f} W",
     ]
 
+    if result.salinity_power_mW > 0.01:
+        lines.append(
+            f"    Salinity gradient:  {result.salinity_power_mW:.3f} mW  (negligible)")
+
+    lines.extend([
+        f"    Total available:    {result.total_power_W:.0f} W",
+        f"    Annual energy:      {result.annual_energy_kWh:.0f} kWh/year",
+        "",
+        "  pH RESTORATION",
+        "  " + "-" * 66,
+        f"    Current:  pH={config.pH:.2f}, Ω_arag={result.omega_aragonite_current:.2f}, "
+        f"pCO₂={result.pCO2_current_uatm:.0f} μatm",
+        f"    Target:   pH={config.target_pH:.2f}, Ω_arag={result.omega_aragonite_restored:.2f}",
+        f"    Power needed ({config.flow_rate_L_min:.0f} L/min):  "
+        f"{result.alkalinity_power_W:.0f} W",
+        f"    Power surplus:      {result.power_surplus_W:.0f} W",
+        "",
+        "  IRON CHEMISTRY",
+        "  " + "-" * 66,
+        f"    Fe²⁺ half-life:    {result.fe2_half_life_min:.1f} min",
+        f"    Passive dissolution: {result.passive_dissolution_ug_hr:.1f} μg/hr "
+        f"({config.iron_mineral}, {config.iron_surface_area_cm2:.0f} cm²)",
+        f"    Target release:     {config.iron_release_ug_hr:.0f} μg/hr",
+        f"    Fe²⁺ at 100m:      {result.fe2_at_100m_nM:.1f} nM "
+        f"({result.fe2_at_100m_nM * 0.055845:.3f} μg/L)",
+        f"    Fe²⁺ at 500m:      {result.fe2_at_500m_nM:.1f} nM "
+        f"({result.fe2_at_500m_nM * 0.055845:.3f} μg/L)",
+        f"    Effective plume:    {result.effective_plume_length_m:.0f} m "
+        "(Fe²⁺ > 0.1 μg/L)",
+        "",
+    ])
+
     if result.warnings:
-        lines.append("WARNINGS")
-        lines.append("-" * 50)
+        lines.append("  WARNINGS")
+        lines.append("  " + "-" * 66)
         for w in result.warnings:
-            lines.append(f"  ⚠ {w}")
+            lines.append(f"    ⚠ {w}")
         lines.append("")
 
-    lines.append("NOTE: Wave energy dominates by orders of magnitude over")
-    lines.append("salinity and induction sources at community scale. The")
-    lines.append("'multiplicative coupling' described in project documentation")
-    lines.append("overstates energy from EM induction and salinity gradients.")
-    lines.append("")
-    lines.append("=" * 60)
+    if result.recommendations:
+        lines.append("  RECOMMENDATIONS")
+        lines.append("  " + "-" * 66)
+        for r in result.recommendations:
+            lines.append(f"    → {r}")
+        lines.append("")
 
+    lines.append("=" * 70)
     return "\n".join(lines)
 
 
+# --- Predefined site configurations ---
+
+LA_JOLLA = SiteConfig(
+    name="La Jolla Marine Sanctuary",
+    wave_height_m=0.9,
+    wave_period_s=10.0,
+    summer_Hs_m=0.6,
+    winter_Hs_m=1.3,
+    temperature_C=17.0,
+    salinity_psu=33.5,
+    pH=8.05,
+    DIC_umol_kg=2020.0,
+    current_speed_m_s=0.25,
+    owc_width_m=5.0,
+    turbine_type="wells",
+    iron_release_ug_hr=300.0,
+    target_pH=8.15,
+)
+
+RIVER_MOUTH = SiteConfig(
+    name="River Mouth (Generic Estuary)",
+    wave_height_m=0.7,
+    wave_period_s=7.0,
+    summer_Hs_m=0.4,
+    winter_Hs_m=1.0,
+    temperature_C=14.0,
+    salinity_psu=30.0,
+    salinity_low_psu=5.0,
+    pH=7.95,
+    DIC_umol_kg=2100.0,
+    current_speed_m_s=0.5,
+    owc_width_m=3.0,
+    turbine_type="check_valve",
+    iron_release_ug_hr=0.0,  # No iron at river mouths (excess already)
+    target_pH=8.10,
+)
+
+TROPICAL_REEF = SiteConfig(
+    name="Tropical Coral Reef",
+    wave_height_m=0.6,
+    wave_period_s=6.0,
+    summer_Hs_m=0.5,
+    winter_Hs_m=0.8,
+    temperature_C=27.0,
+    salinity_psu=35.0,
+    pH=8.02,
+    DIC_umol_kg=1950.0,
+    current_speed_m_s=0.15,
+    owc_width_m=3.0,
+    turbine_type="check_valve",
+    iron_release_ug_hr=100.0,
+    target_pH=8.15,
+)
+
+
 if __name__ == "__main__":
-    print("Running simulation with default coastal site conditions...\n")
+    sites = [LA_JOLLA, RIVER_MOUTH, TROPICAL_REEF]
 
-    site = SiteConditions()
-    result = run_simulation(site)
-    print(format_report(result, site))
-
-    # Example: La Jolla conditions
-    print("\n\nLa Jolla Marine Sanctuary scenario:\n")
-    la_jolla = SiteConditions(
-        salinity_high=33.5,
-        salinity_low=30.0,     # Modest gradient (no major river)
-        temperature_K=290.0,   # ~17°C
-        current_velocity=0.3,  # Moderate California Current
-        magnetic_field=48e-6,  # Mid-latitude Pacific
-        electrode_separation=2.0,
-        wave_height=0.8,
-        wave_period=10.0,
-        wave_crest_length=5.0,
-        iron_release_rate_kg_per_hr=0.0005,
-        current_speed_for_advection=0.3,
-    )
-    result_lj = run_simulation(la_jolla)
-    print(format_report(result_lj, la_jolla))
+    for site_config in sites:
+        result = run_integrated_assessment(site_config)
+        print(format_assessment(result, site_config))
+        print()

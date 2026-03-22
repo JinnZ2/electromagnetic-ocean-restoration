@@ -2,96 +2,82 @@
 
 ## Project Overview
 
-**Electromagnetic Ocean Restoration** — Community-deployable electromagnetic systems for marine ecosystem restoration. The project leverages natural energy patterns (solar-polar coupling, ocean currents, wave action) to address ocean acidification and marine ecosystem collapse.
+**Electromagnetic Ocean Restoration** — Community-deployable systems for marine ecosystem restoration, combining wave energy capture, controlled iron release, and electrochemical pH buffering.
 
-**Stage**: Early concept phase — documentation and scientific framework established, no code implementation yet.
+**Stage**: Working simulation code with physics-based models. No field deployment infrastructure yet.
 
 ## Repository Structure
 
 ```
 /
-├── README.md                  # Core project documentation, scientific principles, planned architecture
-├── Potential-deployments.md   # Deployment strategies, technical equations, real-world examples
-└── CLAUDE.md                  # This file
+├── equations/
+│   ├── ocean_restoration_simulation.py  # Integrated site assessment (main entry point)
+│   ├── wave_energy.py                   # Wave power and OWC device sizing
+│   ├── iron_chemistry.py               # Fe²⁺/Fe³⁺ kinetics, speciation, plume modeling
+│   ├── carbonate_system.py             # Ocean CO₂ equilibrium, pH buffering, alkalinity
+│   └── __init__.py
+├── community-tools/
+│   └── deployment_calculator.py        # CLI tool for site assessment
+├── README.md                           # Project documentation with honest energy budget
+├── Potential-deployments.md            # Deployment strategies with real numbers
+├── CLAUDE.md                           # This file
+├── requirements.txt                    # Dependencies (stdlib only for core)
+└── .gitignore
 ```
 
-### Planned Directory Structure (from README)
+## Running the Code
 
-These directories are described in documentation but not yet created:
+```bash
+# All modules use only Python standard library — no pip install needed
 
-- `equations/` — Mathematical models (solar-polar coupling, wave dynamics, iron bioavailability)
-- `sensor-calibration/` — Calibration protocols for community-built sensors
-- `iron-pump-designs/` — Open-source electromagnetic iron pump designs
-- `data-sharing/` — Community data collection and sharing protocols
-- `case-studies/` — Real-world deployment documentation
-- `community-tools/` — Deployment calculators and network tools
+# Run integrated simulation (3 predefined sites)
+python equations/ocean_restoration_simulation.py
 
-### Planned Python Modules
+# Run individual modules
+python equations/wave_energy.py
+python equations/iron_chemistry.py
+python equations/carbonate_system.py
 
-- `solar-polar-coupling.py` — Solar-polar electromagnetic coupling models
-- `iron-wave-pump-dynamics.py` — Iron wave pump dynamics
-- `ecosystem-restoration-models.py` — Ecosystem restoration modeling
-- `coupling-optimization.py` — Energy coupling optimization
-- `noise-characterization-tools.py` — Environmental noise characterization
-- `deployment-calculator.py` — Community deployment planning
-- `community-network-protocols.py` — Network coordination protocols
+# CLI deployment calculator
+python community-tools/deployment_calculator.py --preset la-jolla
+python community-tools/deployment_calculator.py --wave-height 1.0 --wave-period 8
+```
+
+## Key Physics (What's Real, What's Not)
+
+### Works at community scale
+- **Wave energy**: 100W–10kW from oscillating water column devices
+- **Electrochemical pH buffering**: Wave-powered seawater electrolysis
+- **Iron fertilization**: Controlled release of bioavailable Fe²⁺
+
+### Does NOT work at community scale
+- **Ocean current EM induction**: Yields microwatts (Earth's field ~50 μT)
+- **Solar/CME coupling at surface**: Absorbed at ionosphere altitude (80+ km)
+- **Multiplicative energy equations**: Dimensionally incorrect (Energy × Energy ≠ Energy)
+- **Salinity gradient power**: Milliwatts without industrial-scale membranes
+
+### Core Equations
+- Wave power: `P = (ρg²H²T)/(32π)` — standard linear wave theory
+- Nernst equation: `ΔV = (RT/nF)ln(C₁/C₂)` — salinity gradient voltage
+- Fe²⁺ oxidation: `k ≈ 8×10¹³ M⁻³s⁻¹` — Millero et al. (1987)
+- Carbonate: Lueker et al. (2000) K₁/K₂, Mucci (1983) K_sp
 
 ## Technology Stack
 
-- **Primary language**: Python (planned)
-- **No build system, package manager, or dependency manifest yet**
-- **No test framework configured**
-- **No CI/CD pipeline**
-- **No linting/formatting tools configured**
+- **Language**: Python 3.8+
+- **Dependencies**: Standard library only (math, dataclasses, argparse)
+- **No build system, test framework, or CI/CD yet**
 
-## Development Workflow
+## Development Conventions
 
-### Git
+- **Honesty over hype** — every claim must have units that work out and realistic parameter values
+- **Cite sources** — reference published literature for rate constants and equilibrium values
+- **Safety warnings** — iron release requires regulatory approval (London Protocol)
+- **Community accessible** — code should be readable by non-specialists
+- **Energy sources add, not multiply** — total power is sum of inputs × efficiencies
 
-- **Main branch**: `main` (remote) / `master` (local)
-- **Branching**: Feature branches prefixed with `claude/`
-- **Commits**: Descriptive messages; two commits exist so far
+## Git
 
-### When Code Implementation Begins
-
-The following should be established:
-
-1. `requirements.txt` or `pyproject.toml` for Python dependencies
-2. A test framework (e.g., `pytest`)
-3. Linting/formatting (e.g., `ruff`, `black`)
-4. `.gitignore` for Python artifacts (`__pycache__/`, `*.pyc`, `.venv/`, etc.)
-5. CI/CD via GitHub Actions
-
-## Key Concepts & Conventions
-
-### Scientific Principles
-
-- **Solar-Polar Electromagnetic Coupling**: Uses solar maximum cycles and polar magnetic field shifts
-- **Iron-Based Ecosystem Restoration**: Electromagnetic delivery of bioavailable iron to marine ecosystems
-- **Energy-Based Problem Solving**: Optimization through natural energy patterns, not brute force
-- **Cascading Restoration**: Small coordinated interventions triggering large-scale ecosystem recovery
-
-### Community Resource Tiers
-
-| Tier | Budget | Description |
-|------|--------|-------------|
-| Basic | $5–50 | Smartphone-based sensors, simple measurements |
-| Intermediate | $50–500 | Arduino/Raspberry Pi systems, calibrated sensors |
-| Advanced | $500+ | Research-grade equipment, real-time monitoring |
-
-### Contributing Principles
-
-1. **Energy-based thinking** over linear constraints
-2. **Community accessibility** — solutions must work at any resource level
-3. **Environmental ethics** — ecosystem health above technical performance
-4. **Indigenous knowledge integration** — traditional knowledge with consent
-5. **Open collaboration** — share knowledge freely
-
-## Notes for AI Assistants
-
-- This repo is documentation-only right now. Do not assume code infrastructure exists.
-- When adding code, follow the planned module structure from the README.
-- Use Python with clear, well-documented scientific code.
-- Prioritize community accessibility — code should be understandable by non-experts.
-- Equations referenced in documentation should be implemented faithfully.
-- Environmental safety is paramount; any modeling code should include appropriate warnings and validation.
+- **Main branch**: `main`
+- **Feature branches**: `claude/` prefix
+- **Commits**: Descriptive messages explaining what and why

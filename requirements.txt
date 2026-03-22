@@ -1,0 +1,8 @@
+# Ocean Restoration Simulation
+# All modules use only the Python standard library (math, dataclasses, argparse).
+# No external dependencies required.
+#
+# Optional dependencies for visualization and data analysis:
+# matplotlib>=3.5     # Plotting plume profiles, energy budgets
+# numpy>=1.21         # Numerical computation (not required for core modules)
+# pandas>=1.3         # Data analysis for field measurements
