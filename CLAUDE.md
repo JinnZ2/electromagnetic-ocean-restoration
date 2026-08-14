@@ -18,6 +18,14 @@
 │   └── __init__.py
 ├── community-tools/
 │   └── deployment_calculator.py        # CLI tool for site assessment
+├── tests/                              # pytest suite (132 tests)
+│   ├── conftest.py                     # Puts equations/ on sys.path
+│   ├── test_wave_energy.py
+│   ├── test_iron_chemistry.py
+│   ├── test_carbonate_system.py
+│   └── test_integration.py             # End-to-end + CLI subprocess tests
+├── .github/workflows/tests.yml         # CI: pytest 3.8–3.13 + stdlib-only check
+├── pytest.ini                          # Test configuration
 ├── README.md                           # Project documentation with honest energy budget
 ├── Potential-deployments.md            # Deployment strategies with real numbers
 ├── CLAUDE.md                           # This file
@@ -43,6 +51,38 @@ python community-tools/deployment_calculator.py --preset la-jolla
 python community-tools/deployment_calculator.py --wave-height 1.0 --wave-period 8
 ```
 
+## Testing
+
+```bash
+pip install pytest    # the only dev dependency
+pytest                # 132 tests, ~1 second
+```
+
+Tests live in `tests/` and assert real physics, not just that the code runs.
+Equilibrium constants are pinned to the published values in the papers each
+module cites (Lueker 2000, Mucci 1983, Millero 1987, Liu & Millero 2002), so a
+regression in a fitted coefficient fails loudly instead of quietly shifting
+every downstream number.
+
+`tests/conftest.py` puts `equations/` and `community-tools/` on `sys.path`,
+because the modules import each other by bare name.
+
+When adding a model, add tests in the same style: a known-value check against
+the literature where one exists, plus scaling, conservation, and edge cases.
+
+### Open issue pinned by a test
+
+`deep_water_wave_power()` divides by 32π, but its own docstring derivation
+(`E = ρgHs²/16`, `cg = gTp/4π`) and the standard irregular-sea result both give
+64π — the 32π form is for regular waves of height H, not a sea state
+characterised by Hs. The function therefore overestimates wave power by 2×.
+`test_wave_power_matches_documented_derivation` is marked `xfail` with
+`xfail_strict = true`; fixing the denominator makes it XPASS, which fails CI
+until the marker is removed. Fixing it changes every wave-power figure in
+`README.md` and `Potential-deployments.md`, which also disagree with each other
+today (the README quotes 4.9 kW/m for Hs=1 m, Tp=8 s where the code returns
+7.85 and the corrected formula gives 3.92).
+
 ## Key Physics (What's Real, What's Not)
 
 ### Works at community scale
@@ -66,7 +106,10 @@ python community-tools/deployment_calculator.py --wave-height 1.0 --wave-period 
 
 - **Language**: Python 3.8+
 - **Dependencies**: Standard library only (math, dataclasses, argparse)
-- **No build system, test framework, or CI/CD yet**
+- **Tests**: pytest (`tests/`), the only dev dependency
+- **CI**: GitHub Actions — pytest on Python 3.8–3.13, plus a job that installs
+  nothing and runs every entry point to enforce the stdlib-only guarantee
+- **No build system or packaging** (modules are run directly, not installed)
 
 ## Development Conventions
 

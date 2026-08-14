@@ -2,6 +2,9 @@
 # All modules use only the Python standard library (math, dataclasses, argparse).
 # No external dependencies required.
 #
+# Development dependency — needed only to run the test suite (`pytest`):
+# pytest>=7.0
+#
 # Optional dependencies for visualization and data analysis:
 # matplotlib>=3.5     # Plotting plume profiles, energy budgets
 # numpy>=1.21         # Numerical computation (not required for core modules)

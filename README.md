@@ -89,6 +89,12 @@ electromagnetic-ocean-restoration/
 │   └── wave_energy.py                  # Wave power, device sizing, capture efficiency
 ├── community-tools/
 │   └── deployment_calculator.py        # CLI tool for site assessment
+├── tests/                              # Test suite (see Testing below)
+│   ├── test_wave_energy.py
+│   ├── test_iron_chemistry.py
+│   ├── test_carbonate_system.py
+│   └── test_integration.py
+├── .github/workflows/tests.yml         # CI: pytest on Python 3.8–3.13
 ├── Potential-deployments.md            # Deployment strategies with real numbers
 ├── CLAUDE.md                           # AI assistant guide
 ├── requirements.txt                    # Python dependencies
@@ -117,6 +123,44 @@ python equations/wave_energy.py
 python equations/iron_chemistry.py
 python equations/carbonate_system.py
 ```
+
+## Testing
+
+The core modules need only the standard library. Running the tests needs `pytest`:
+
+```bash
+pip install pytest
+pytest                    # run everything
+pytest -v                 # one line per test
+pytest tests/test_iron_chemistry.py    # a single module
+```
+
+The suite checks physics, not just that the code runs. Where a published value
+exists, the test asserts against the paper the module cites:
+
+| Check | Source |
+|---|---|
+| pK₁ = 5.8472, pK₂ = 8.9660 at 25 °C, S=35 | Lueker et al. (2000) |
+| K_sp aragonite = 6.48×10⁻⁷, calcite = 4.27×10⁻⁷ | Mucci (1983) |
+| Fe²⁺ half-life of minutes at pH 8, 25 °C | Millero et al. (1987) |
+| Fe(III) solubility 0.07–0.6 nM at pH 8 | Liu & Millero (2002) |
+| [Ca²⁺] = 0.01028 mol/kg at S=35 | Riley & Tongudai (1967) |
+
+The rest cover scaling laws (wave power as Hs², oxidation rate as [OH⁻]²),
+conservation (carbonate species summing to DIC, charge matching Faraday's law),
+monotonicity, edge cases, and end-to-end consistency of the integrated
+assessment and the CLI.
+
+### Known discrepancy
+
+One test is marked `xfail`: `deep_water_wave_power()` divides by 32π, but its
+own docstring derivation — and the standard result for an irregular sea
+characterised by significant height Hs — gives 64π. The 32π form applies to
+regular waves of height H. As written the function **overestimates wave power
+by a factor of 2**, and the figures in the energy-budget tables above inherit
+that. The test documents the expected behaviour and will start failing (via
+`xfail_strict`) once the denominator is corrected, prompting removal of the
+marker.
 
 ## Community Deployment Tiers
 

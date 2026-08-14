@@ -1,0 +1,71 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# The reports print Greek letters and subscripts; pin the encoding so a
+# runner with a non-UTF-8 locale cannot fail on the first micro sign.
+env:
+  PYTHONIOENCODING: utf-8
+
+jobs:
+  pytest:
+    name: pytest (Python ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # 3.8 is not in the ubuntu-latest tool cache any more.
+          - { python-version: "3.8", os: ubuntu-22.04 }
+          - { python-version: "3.9", os: ubuntu-latest }
+          - { python-version: "3.10", os: ubuntu-latest }
+          - { python-version: "3.11", os: ubuntu-latest }
+          - { python-version: "3.12", os: ubuntu-latest }
+          - { python-version: "3.13", os: ubuntu-latest }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip pytest
+
+      - name: Run tests
+        run: python -m pytest -v
+
+  stdlib-only:
+    # The project promises the physics modules need nothing but the standard
+    # library. This job installs no packages at all and runs every entry
+    # point, so a stray third-party import breaks the build.
+    name: stdlib-only import check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Confirm no third-party packages are installed
+        run: python -m pip list --not-required --format=freeze
+
+      - name: Run every module entry point with a bare interpreter
+        run: |
+          python equations/wave_energy.py > /dev/null
+          python equations/iron_chemistry.py > /dev/null
+          python equations/carbonate_system.py > /dev/null
+          python equations/ocean_restoration_simulation.py > /dev/null
+
+      - name: Run the deployment calculator for each preset
+        run: |
+          for preset in la-jolla river-mouth tropical-reef; do
+            python community-tools/deployment_calculator.py --preset "$preset" > /dev/null
+          done
