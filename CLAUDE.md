@@ -25,6 +25,10 @@
 │   ├── test_carbonate_system.py
 │   └── test_integration.py             # End-to-end + CLI subprocess tests
 ├── .github/workflows/tests.yml         # CI: pytest 3.8–3.13 + stdlib-only check
+├── legacy/                             # Superseded claims + falsification log
+│   ├── README.md                       # What was ruled out, by what argument
+│   ├── 2025-11-30-README.md            # Original docs, verbatim
+│   └── 2025-11-30-Potential-deployments.md
 ├── pytest.ini                          # Test configuration
 ├── README.md                           # Project documentation with honest energy budget
 ├── Potential-deployments.md            # Deployment strategies with real numbers
@@ -92,6 +96,20 @@ Keep these in mind when touching the docs — the numbers in `README.md` and
 The pattern: the *code* was right in every case except the wave-power
 denominator, and the prose had drifted. Prefer regenerating doc tables from
 the modules over editing them by hand.
+
+## Legacy / falsification log
+
+`legacy/` holds claims the project has abandoned, in the form they were
+originally made, plus a log of what falsified each one. **When a claim turns
+out to be wrong, move it there rather than deleting it** — a ruled-out
+hypothesis is a result, and it stops the same idea being re-proposed.
+
+`legacy/README.md` also tracks the **open questions**: nine places where the
+current code is untested or under-justified (a clamped Revelle factor, a
+hand-fitted Fe(III) solubility, unused function parameters, hard-coded
+turbulent diffusion, and so on), each with a suggested test. Start there when
+looking for what to work on next, and add a row to the round table when one is
+resolved.
 
 ## Key Physics (What's Real, What's Not)
 

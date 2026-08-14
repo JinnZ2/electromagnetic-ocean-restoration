@@ -97,11 +97,27 @@ electromagnetic-ocean-restoration/
 │   ├── test_carbonate_system.py
 │   └── test_integration.py
 ├── .github/workflows/tests.yml         # CI: pytest on Python 3.8–3.13
+├── legacy/                             # Superseded claims + falsification log
+│   ├── README.md                       # What was ruled out, and by what argument
+│   ├── 2025-11-30-README.md
+│   └── 2025-11-30-Potential-deployments.md
 ├── Potential-deployments.md            # Deployment strategies with real numbers
 ├── CLAUDE.md                           # AI assistant guide
 ├── requirements.txt                    # Python dependencies
 └── README.md                           # This file
 ```
+
+### On the `legacy/` folder
+
+Claims this project has abandoned are kept in `legacy/`, in the form they were
+originally made, with a log of what falsified each one. A discarded hypothesis
+is still a result: if you arrive with an idea this repo already tried — CME
+harvesting, current-induction power, multiplicative energy coupling — you can
+find out in one read why it does not work, rather than re-deriving it.
+
+`legacy/README.md` also carries the **open questions**: places where the
+current code is untested or under-justified, each with a suggested test. That
+list is the next round of work.
 
 ## Quick Start
 
