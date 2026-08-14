@@ -20,30 +20,39 @@ from wave_energy import (
 # --- Wave power ---
 
 def test_wave_power_matches_its_own_formula():
-    """Pins the implemented expression P = rho g^2 Hs^2 Tp / (32 pi)."""
-    expected = (RHO_SW * G ** 2 * 1.0 ** 2 * 8.0) / (32 * math.pi)
+    """Pins the implemented expression P = rho g^2 Hs^2 Tp / (64 pi)."""
+    expected = (RHO_SW * G ** 2 * 1.0 ** 2 * 8.0) / (64 * math.pi)
     assert deep_water_wave_power(1.0, 8.0) == pytest.approx(expected)
 
 
-@pytest.mark.xfail(
-    reason="Known discrepancy: deep_water_wave_power() divides by 32*pi, but its "
-           "own docstring derivation (E = rho g Hs^2/16, cg = g Tp/4pi) and the "
-           "standard irregular-sea result both give 64*pi. The 32*pi form applies "
-           "to regular waves of height H, not to a sea state characterised by Hs, "
-           "so the function currently overestimates wave power by exactly 2x. "
-           "Remove this marker when the denominator is corrected.",
-    strict=True,
-)
 def test_wave_power_matches_documented_derivation():
-    """P should equal energy density x group velocity, as the docstring states.
+    """P must equal energy density x group velocity, as the docstring states.
 
-    E = rho g Hs^2 / 16  and  cg = g Tp / (4 pi)  =>  P = rho g^2 Hs^2 Tp / (64 pi),
-    i.e. the familiar P[kW/m] ~ 0.49 Hs^2 Te for a random sea.
+    E = rho g Hs^2 / 16  and  cg = g Tp / (4 pi)  =>  P = rho g^2 Hs^2 Tp / (64 pi).
     """
     energy_density = RHO_SW * G * 1.0 ** 2 / 16.0
     group_velocity = G * 8.0 / (4 * math.pi)
     assert deep_water_wave_power(1.0, 8.0) == pytest.approx(
         energy_density * group_velocity, rel=1e-9)
+
+
+def test_wave_power_matches_the_standard_engineering_approximation():
+    """The familiar rule of thumb for a random sea: P[kW/m] ~ 0.49 Hs^2 Te."""
+    for Hs, Tp in [(0.5, 6.0), (1.0, 8.0), (2.0, 10.0), (3.0, 12.0)]:
+        kW_per_m = deep_water_wave_power(Hs, Tp) / 1000.0
+        assert kW_per_m == pytest.approx(0.49 * Hs ** 2 * Tp, rel=0.01)
+
+
+def test_regular_wave_form_is_twice_the_irregular_sea_result():
+    """Guards against the 32*pi form silently coming back.
+
+    The 32*pi denominator is correct for monochromatic waves of height H, but
+    applying it to a sea state characterised by Hs doubles the resource. This
+    pins the factor of 2 so the distinction cannot be quietly re-collapsed.
+    """
+    regular_wave_power = (RHO_SW * G ** 2 * 1.0 ** 2 * 8.0) / (32 * math.pi)
+    assert deep_water_wave_power(1.0, 8.0) == pytest.approx(
+        regular_wave_power / 2, rel=1e-12)
 
 
 def test_wave_power_scales_with_height_squared():

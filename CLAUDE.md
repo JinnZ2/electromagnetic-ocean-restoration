@@ -70,18 +70,28 @@ because the modules import each other by bare name.
 When adding a model, add tests in the same style: a known-value check against
 the literature where one exists, plus scaling, conservation, and edge cases.
 
-### Open issue pinned by a test
+### Errors the suite caught (all fixed)
 
-`deep_water_wave_power()` divides by 32π, but its own docstring derivation
-(`E = ρgHs²/16`, `cg = gTp/4π`) and the standard irregular-sea result both give
-64π — the 32π form is for regular waves of height H, not a sea state
-characterised by Hs. The function therefore overestimates wave power by 2×.
-`test_wave_power_matches_documented_derivation` is marked `xfail` with
-`xfail_strict = true`; fixing the denominator makes it XPASS, which fails CI
-until the marker is removed. Fixing it changes every wave-power figure in
-`README.md` and `Potential-deployments.md`, which also disagree with each other
-today (the README quotes 4.9 kW/m for Hs=1 m, Tp=8 s where the code returns
-7.85 and the corrected formula gives 3.92).
+Keep these in mind when touching the docs — the numbers in `README.md` and
+`Potential-deployments.md` are now derived from the code, not hand-written.
+
+1. **Wave power was 2× too high.** `deep_water_wave_power()` used 32π (the
+   regular-wave form) with a significant wave height. Now 64π. Three tests
+   pin it, including one asserting the result is exactly half the 32π value,
+   so the two forms cannot be silently re-conflated.
+2. **Fe²⁺ half-life** in the docs (~4 min at pH 8.1, 15 °C) contradicted the
+   model (~26 min). The code was correct: temperature enters both through
+   k_ox and through Kw in the [OH⁻]² term, and the module deliberately uses
+   pure-water (NBS-scale) Kw to match Millero's calibration.
+3. **k_ox** was documented as 8×10¹³ M⁻³s⁻¹; the cited expression gives
+   8.2×10¹² M⁻³s⁻¹ at 25 °C, S=35.
+4. **A 1000× unit error** in the iron release calculation in
+   `Potential-deployments.md`, which understated the passive-dissolution
+   requirement by ~280×.
+
+The pattern: the *code* was right in every case except the wave-power
+denominator, and the prose had drifted. Prefer regenerating doc tables from
+the modules over editing them by hand.
 
 ## Key Physics (What's Real, What's Not)
 
@@ -97,9 +107,11 @@ today (the README quotes 4.9 kW/m for Hs=1 m, Tp=8 s where the code returns
 - **Salinity gradient power**: Milliwatts without industrial-scale membranes
 
 ### Core Equations
-- Wave power: `P = (ρg²H²T)/(32π)` — standard linear wave theory
+- Wave power: `P = (ρg²Hs²Tp)/(64π)` — linear wave theory, irregular sea.
+  64π not 32π: the 32π form is for regular waves of height H, and using it
+  with a significant wave height doubles the answer.
 - Nernst equation: `ΔV = (RT/nF)ln(C₁/C₂)` — salinity gradient voltage
-- Fe²⁺ oxidation: `k ≈ 8×10¹³ M⁻³s⁻¹` — Millero et al. (1987)
+- Fe²⁺ oxidation: `k ≈ 8.2×10¹² M⁻³s⁻¹` at 25 °C, S=35 — Millero et al. (1987)
 - Carbonate: Lueker et al. (2000) K₁/K₂, Mucci (1983) K_sp
 
 ## Technology Stack

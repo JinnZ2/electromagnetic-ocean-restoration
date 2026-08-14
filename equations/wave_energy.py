@@ -6,7 +6,7 @@ Focuses on oscillating water column (OWC) devices as the most practical
 community-buildable option.
 
 Key equations:
-  Deep-water wave power: P = (ρ g² H² T) / (32π)  [W/m]
+  Deep-water wave power: P = (ρ g² Hs² Tp) / (64π)  [W/m]
   OWC capture: P_cap = P × W × η_owc
   Annual energy: E = P_cap × capacity_factor × 8760  [Wh/year]
 
@@ -67,13 +67,22 @@ class WaveEnergyResult:
 def deep_water_wave_power(Hs: float, Tp: float) -> float:
     """Wave power per meter of wave crest in deep water.
 
-    P = (ρ × g² × Hs² × Tp) / (32π)
+    P = (ρ × g² × Hs² × Tp) / (64π)
 
     This is the time-averaged power transported by a sea state characterized
     by significant wave height Hs and peak period Tp.
 
     Derivation: from linear wave theory, energy density E = ρgHs²/16,
     group velocity cg = gTp/(4π), and P = E × cg.
+
+    Note the 64π denominator. The more commonly quoted P = ρg²H²T/(32π)
+    applies to *regular* (monochromatic) waves of height H, where the energy
+    density is ρgH²/8. A real sea state is irregular, and for the Rayleigh
+    distribution of wave heights the equivalent energy density is ρgHs²/16 —
+    half as much — which puts a factor of 2 in the denominator. Using the
+    32π form with Hs overestimates the resource by exactly 2×.
+
+    Sanity check: this reduces to the familiar P[kW/m] ≈ 0.49 × Hs² × Te.
 
     Args:
         Hs: Significant wave height (m)
@@ -82,7 +91,7 @@ def deep_water_wave_power(Hs: float, Tp: float) -> float:
     Returns:
         Power in watts per meter of wave crest
     """
-    return (RHO_SW * G ** 2 * Hs ** 2 * Tp) / (32 * math.pi)
+    return (RHO_SW * G ** 2 * Hs ** 2 * Tp) / (64 * math.pi)
 
 
 def wavelength(period_s: float, depth_m: Optional[float] = None) -> float:

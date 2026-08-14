@@ -18,7 +18,7 @@ Not all energy sources are equal. Here is what the physics actually gives you at
 
 | Energy Source | Voltage / Power | Practical? | Notes |
 |---|---|---|---|
-| **Wave energy** (1m wave, 8s period, 10m capture) | ~11 kW available, ~1.8 kW captured | **Yes** | Dominant source. Well-proven technology. |
+| **Wave energy** (1m wave, 8s period, 10m capture) | ~39 kW available, ~7 kW captured | **Yes** | Dominant source. Well-proven technology. |
 | **Salinity gradient** (river mouth, small RED cell) | ~50 mV, ~0.07 mW | Marginal | Needs large membrane area to be useful. Research-scale. |
 | **Ocean current EM induction** | ~25 μV, ~0.003 μW | **No** | Earth's field is ~50 μT. Yields microwatts. Not practical. |
 | **Piezoelectric** | ~0.05 μV per element | **No** | Supplementary sensor power only. |
@@ -55,10 +55,12 @@ By removing H⁺ electrochemically (or adding OH⁻), we shift equilibrium right
 Deep-water wave power transport:
 
 ```
-P = (ρ × g² × H² × T) / (32π)  [W per meter of wave crest]
+P = (ρ × g² × Hs² × Tp) / (64π)  [W per meter of wave crest]
 ```
 
-For H=1m, T=8s: ~4.9 kW/m. A 10m capture width device at 15% efficiency yields ~7.4 kW. This is well within community-build capability — oscillating water column (OWC) devices have been built at this scale since the 1990s.
+The denominator is 64π, not the more commonly quoted 32π. The 32π form applies to *regular* waves of height H, where energy density is ρgH²/8. A real sea state is irregular, and for a Rayleigh distribution of wave heights the equivalent energy density is ρgHs²/16 — half as much. Using 32π with a significant wave height overestimates the resource by exactly 2×. As a check, this reduces to the standard engineering approximation P[kW/m] ≈ 0.49 × Hs² × Te.
+
+For Hs=1m, Tp=8s: ~3.9 kW/m. A 10m capture width device at 15% efficiency yields ~5.9 kW. This is well within community-build capability — oscillating water column (OWC) devices have been built at this scale since the 1990s.
 
 ### Salinity Gradient Energy
 
@@ -151,16 +153,23 @@ conservation (carbonate species summing to DIC, charge matching Faraday's law),
 monotonicity, edge cases, and end-to-end consistency of the integrated
 assessment and the CLI.
 
-### Known discrepancy
+### Corrections these tests caught
 
-One test is marked `xfail`: `deep_water_wave_power()` divides by 32π, but its
-own docstring derivation — and the standard result for an irregular sea
-characterised by significant height Hs — gives 64π. The 32π form applies to
-regular waves of height H. As written the function **overestimates wave power
-by a factor of 2**, and the figures in the energy-budget tables above inherit
-that. The test documents the expected behaviour and will start failing (via
-`xfail_strict`) once the denominator is corrected, prompting removal of the
-marker.
+Writing the suite surfaced four errors, all now fixed:
+
+1. **Wave power was 2× too high.** `deep_water_wave_power()` divided by 32π
+   (the regular-wave form) while being fed a significant wave height. Now 64π,
+   pinned by three tests — against the docstring derivation, against the
+   `0.49 Hs² Te` engineering approximation, and one asserting the result is
+   exactly half the regular-wave value so the two forms cannot be re-conflated.
+2. **Fe²⁺ half-life** was quoted as ~4 min at pH 8.1, 15 °C; the model gives
+   ~26 min. The code was right — the temperature dependence enters twice, once
+   through k_ox and again through Kw in the [OH⁻]² term.
+3. **k_ox** was quoted as 8×10¹³ M⁻³s⁻¹; Millero's own expression gives
+   8.2×10¹² M⁻³s⁻¹ at 25 °C, S=35.
+4. **A 1000× unit error** in the iron release-rate calculation in
+   `Potential-deployments.md` (0.054 g/hr where the arithmetic gives 54 g/hr),
+   which had made passive iron release look ~280× easier than it is.
 
 ## Community Deployment Tiers
 
@@ -176,7 +185,7 @@ marker.
 ### Wave Power (the actual energy source)
 
 ```
-P_wave = (ρ g² H² T) / (32π)           # W/m of wave crest
+P_wave = (ρ g² Hs² Tp) / (64π)         # W/m of wave crest (irregular sea)
 P_captured = P_wave × L_capture × η      # Total captured power (W)
 ```
 
@@ -184,9 +193,12 @@ P_captured = P_wave × L_capture × η      # Total captured power (W)
 
 ```
 Fe²⁺ oxidation: d[Fe²⁺]/dt = -k_ox × [Fe²⁺] × [O₂] × [OH⁻]²
-  where k_ox ≈ 8 × 10¹³ M⁻³s⁻¹ at 25°C (Millero et al., 1987)
+  where k_ox ≈ 8.2 × 10¹² M⁻³s⁻¹ at 25°C, S=35 (Millero et al., 1987)
+  (equivalently ~4.9 × 10¹⁴ M⁻³min⁻¹, the units Millero reports)
 
-Half-life at pH 8.1, 15°C: ~4 minutes
+Half-life at pH 8.1, 15°C, O₂=250 μmol/kg: ~26 minutes
+Half-life at pH 8.0, 25°C:                 ~5 minutes
+  → strongly temperature-dependent, through both k_ox and Kw
   → sustained slow release beats single large dose
 ```
 
