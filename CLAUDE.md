@@ -18,6 +18,18 @@
 │   └── __init__.py
 ├── community-tools/
 │   └── deployment_calculator.py        # CLI tool for site assessment
+├── tests/                              # pytest suite (132 tests)
+│   ├── conftest.py                     # Puts equations/ on sys.path
+│   ├── test_wave_energy.py
+│   ├── test_iron_chemistry.py
+│   ├── test_carbonate_system.py
+│   └── test_integration.py             # End-to-end + CLI subprocess tests
+├── .github/workflows/tests.yml         # CI: pytest 3.8–3.13 + stdlib-only check
+├── legacy/                             # Superseded claims + falsification log
+│   ├── README.md                       # What was ruled out, by what argument
+│   ├── 2025-11-30-README.md            # Original docs, verbatim
+│   └── 2025-11-30-Potential-deployments.md
+├── pytest.ini                          # Test configuration
 ├── README.md                           # Project documentation with honest energy budget
 ├── Potential-deployments.md            # Deployment strategies with real numbers
 ├── CLAUDE.md                           # This file
@@ -43,6 +55,62 @@ python community-tools/deployment_calculator.py --preset la-jolla
 python community-tools/deployment_calculator.py --wave-height 1.0 --wave-period 8
 ```
 
+## Testing
+
+```bash
+pip install pytest    # the only dev dependency
+pytest                # 132 tests, ~1 second
+```
+
+Tests live in `tests/` and assert real physics, not just that the code runs.
+Equilibrium constants are pinned to the published values in the papers each
+module cites (Lueker 2000, Mucci 1983, Millero 1987, Liu & Millero 2002), so a
+regression in a fitted coefficient fails loudly instead of quietly shifting
+every downstream number.
+
+`tests/conftest.py` puts `equations/` and `community-tools/` on `sys.path`,
+because the modules import each other by bare name.
+
+When adding a model, add tests in the same style: a known-value check against
+the literature where one exists, plus scaling, conservation, and edge cases.
+
+### Errors the suite caught (all fixed)
+
+Keep these in mind when touching the docs — the numbers in `README.md` and
+`Potential-deployments.md` are now derived from the code, not hand-written.
+
+1. **Wave power was 2× too high.** `deep_water_wave_power()` used 32π (the
+   regular-wave form) with a significant wave height. Now 64π. Three tests
+   pin it, including one asserting the result is exactly half the 32π value,
+   so the two forms cannot be silently re-conflated.
+2. **Fe²⁺ half-life** in the docs (~4 min at pH 8.1, 15 °C) contradicted the
+   model (~26 min). The code was correct: temperature enters both through
+   k_ox and through Kw in the [OH⁻]² term, and the module deliberately uses
+   pure-water (NBS-scale) Kw to match Millero's calibration.
+3. **k_ox** was documented as 8×10¹³ M⁻³s⁻¹; the cited expression gives
+   8.2×10¹² M⁻³s⁻¹ at 25 °C, S=35.
+4. **A 1000× unit error** in the iron release calculation in
+   `Potential-deployments.md`, which understated the passive-dissolution
+   requirement by ~280×.
+
+The pattern: the *code* was right in every case except the wave-power
+denominator, and the prose had drifted. Prefer regenerating doc tables from
+the modules over editing them by hand.
+
+## Legacy / falsification log
+
+`legacy/` holds claims the project has abandoned, in the form they were
+originally made, plus a log of what falsified each one. **When a claim turns
+out to be wrong, move it there rather than deleting it** — a ruled-out
+hypothesis is a result, and it stops the same idea being re-proposed.
+
+`legacy/README.md` also tracks the **open questions**: nine places where the
+current code is untested or under-justified (a clamped Revelle factor, a
+hand-fitted Fe(III) solubility, unused function parameters, hard-coded
+turbulent diffusion, and so on), each with a suggested test. Start there when
+looking for what to work on next, and add a row to the round table when one is
+resolved.
+
 ## Key Physics (What's Real, What's Not)
 
 ### Works at community scale
@@ -57,16 +125,21 @@ python community-tools/deployment_calculator.py --wave-height 1.0 --wave-period 
 - **Salinity gradient power**: Milliwatts without industrial-scale membranes
 
 ### Core Equations
-- Wave power: `P = (ρg²H²T)/(32π)` — standard linear wave theory
+- Wave power: `P = (ρg²Hs²Tp)/(64π)` — linear wave theory, irregular sea.
+  64π not 32π: the 32π form is for regular waves of height H, and using it
+  with a significant wave height doubles the answer.
 - Nernst equation: `ΔV = (RT/nF)ln(C₁/C₂)` — salinity gradient voltage
-- Fe²⁺ oxidation: `k ≈ 8×10¹³ M⁻³s⁻¹` — Millero et al. (1987)
+- Fe²⁺ oxidation: `k ≈ 8.2×10¹² M⁻³s⁻¹` at 25 °C, S=35 — Millero et al. (1987)
 - Carbonate: Lueker et al. (2000) K₁/K₂, Mucci (1983) K_sp
 
 ## Technology Stack
 
 - **Language**: Python 3.8+
 - **Dependencies**: Standard library only (math, dataclasses, argparse)
-- **No build system, test framework, or CI/CD yet**
+- **Tests**: pytest (`tests/`), the only dev dependency
+- **CI**: GitHub Actions — pytest on Python 3.8–3.13, plus a job that installs
+  nothing and runs every entry point to enforce the stdlib-only guarantee
+- **No build system or packaging** (modules are run directly, not installed)
 
 ## Development Conventions
 
