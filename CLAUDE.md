@@ -104,10 +104,11 @@ originally made, plus a log of what falsified each one. **When a claim turns
 out to be wrong, move it there rather than deleting it** — a ruled-out
 hypothesis is a result, and it stops the same idea being re-proposed.
 
-`legacy/README.md` also tracks the **open questions**: nine places where the
+`legacy/README.md` also tracks the **open questions**: ten places where the
 current code is untested or under-justified (a clamped Revelle factor, a
 hand-fitted Fe(III) solubility, unused function parameters, hard-coded
-turbulent diffusion, and so on), each with a suggested test. Start there when
+turbulent diffusion, omitted borate alkalinity, and so on), each with a
+suggested test. Start there when
 looking for what to work on next, and add a row to the round table when one is
 resolved.
 
@@ -130,7 +131,10 @@ resolved.
   with a significant wave height doubles the answer.
 - Nernst equation: `ΔV = (RT/nF)ln(C₁/C₂)` — salinity gradient voltage
 - Fe²⁺ oxidation: `k ≈ 8.2×10¹² M⁻³s⁻¹` at 25 °C, S=35 — Millero et al. (1987)
-- Carbonate: Lueker et al. (2000) K₁/K₂, Mucci (1983) K_sp
+- Carbonate: Lueker et al. (2000) K₁/K₂, Mucci (1983) K_sp, Weiss (1974) K₀
+- Atmospheric CO₂: `CO2_PPM_2025 = 425.6` — State of the Climate in 2025
+  (BAMS 107(8), Aug 2026). `equilibrium_from_pCO2()` solves for the pH this
+  implies, so the observation is an *input* and pH is a computed consequence.
 
 ## Technology Stack
 

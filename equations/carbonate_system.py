@@ -22,11 +22,27 @@ References:
   - Rau, G.H. (2008). Electrochemical splitting of calcium carbonate to
     increase solution alkalinity. Environmental Science & Technology, 42(23),
     8935-8940.
+  - Weiss, R.F. (1974). Carbon dioxide in water and seawater: the solubility
+    of a non-ideal gas. Marine Chemistry, 2(3), 203-215.
+  - Blunden, J. & Boyer, T., Eds. (2026). State of the Climate in 2025.
+    Bulletin of the American Meteorological Society, 107(8), Si-S484.
 """
 
 import math
 from dataclasses import dataclass
 from typing import Optional
+
+# --- Observed atmospheric CO₂ ---
+# State of the Climate in 2025 (36th annual report), published 2026-08-10.
+# Globally averaged surface mole fraction; the report gives 425.6 ± 0.1 ppm,
+# a 53% increase over the ~278 ppm pre-industrial baseline it cites.
+CO2_PPM_2025 = 425.6
+CO2_PPM_PREINDUSTRIAL = 278.0
+
+# Representative global surface-ocean total alkalinity. Nearly conservative
+# with salinity, so it is treated as fixed while CO₂ rises — this is what
+# makes "ocean acidification at constant alkalinity" a meaningful calculation.
+SURFACE_TA_UMOL_KG = 2300.0
 
 
 @dataclass
@@ -146,6 +162,29 @@ def calcium_concentration(salinity_psu: float) -> float:
     return 0.01028 * salinity_psu / 35.0
 
 
+def henry_K0(temperature_C: float, salinity_psu: float) -> float:
+    """Solubility of CO₂ in seawater (Henry's law constant).
+
+    [CO₂*] = K₀ × pCO₂
+
+    From Weiss (1974).
+
+    Args:
+        temperature_C: Temperature in Celsius
+        salinity_psu: Salinity in PSU
+
+    Returns:
+        K₀ in mol/kg-sw/atm
+    """
+    T_K = temperature_C + 273.15
+    S = salinity_psu
+
+    ln_K0 = (-60.2409 + 93.4517 * (100 / T_K) + 23.3585 * math.log(T_K / 100)
+             + S * (0.023517 - 0.023656 * (T_K / 100)
+                    + 0.0047036 * (T_K / 100) ** 2))
+    return math.exp(ln_K0)
+
+
 def solve_carbonate_system(DIC_umol_kg: float, pH: float,
                             temperature_C: float, salinity_psu: float
                             ) -> CarbonateState:
@@ -202,11 +241,7 @@ def solve_carbonate_system(DIC_umol_kg: float, pH: float,
         revelle = 10.0
 
     # pCO₂ (using Henry's law, K0 from Weiss 1974)
-    T_K = temperature_C + 273.15
-    S = salinity_psu
-    ln_K0 = (-60.2409 + 93.4517 * (100 / T_K) + 23.3585 * math.log(T_K / 100)
-             + S * (0.023517 - 0.023656 * (T_K / 100) + 0.0047036 * (T_K / 100) ** 2))
-    K0 = math.exp(ln_K0)  # mol/kg/atm
+    K0 = henry_K0(temperature_C, salinity_psu)
     pCO2 = (CO2 * 1e-6) / K0 * 1e6  # μatm
 
     return CarbonateState(
@@ -220,6 +255,113 @@ def solve_carbonate_system(DIC_umol_kg: float, pH: float,
         buffer_capacity=revelle,
         pCO2_uatm=pCO2,
     )
+
+
+def equilibrium_from_pCO2(pCO2_uatm: float,
+                           alkalinity_umol_kg: float = SURFACE_TA_UMOL_KG,
+                           temperature_C: float = 15.0,
+                           salinity_psu: float = 35.0) -> CarbonateState:
+    """Surface-ocean carbonate state in equilibrium with a given atmosphere.
+
+    This is the direction that matters for ocean acidification: atmospheric
+    CO₂ is the measured quantity, and seawater pH is the *consequence*. Given
+    pCO₂ and total alkalinity, solve for the pH that balances the alkalinity
+    budget, then return the full carbonate state.
+
+    Alkalinity is nearly conservative — it does not change as CO₂ invades —
+    so holding it fixed while raising pCO₂ is what produces the observed
+    acidification trend.
+
+    Method: [CO₂*] is fixed by Henry's law, and
+
+        TA = [HCO₃⁻] + 2[CO₃²⁻] + [OH⁻] - [H⁺]
+
+    is monotonic in pH, so a bisection on pH converges reliably.
+
+    Simplification: this uses the same carbonate-only alkalinity definition as
+    ``alkalinity_needed_for_pH_shift()``, omitting borate. Real seawater TA
+    includes ~100 μmol/kg of borate alkalinity, so an absolute TA taken from
+    observations will not give exactly the observed pH here. Differences
+    between two scenarios at the same TA are far more reliable than absolute
+    values — which is how the comparison below uses it.
+
+    Args:
+        pCO2_uatm: Partial pressure of CO₂ in equilibrium with the water (μatm)
+        alkalinity_umol_kg: Total alkalinity (μmol/kg)
+        temperature_C: Temperature in Celsius
+        salinity_psu: Salinity in PSU
+
+    Returns:
+        CarbonateState at equilibrium with that pCO₂
+    """
+    K1 = carbonate_K1(temperature_C, salinity_psu)
+    K2 = carbonate_K2(temperature_C, salinity_psu)
+    K0 = henry_K0(temperature_C, salinity_psu)
+
+    CO2 = K0 * pCO2_uatm * 1e-6          # mol/kg
+    TA = alkalinity_umol_kg * 1e-6       # mol/kg
+
+    pKw = 13.22 - 0.0178 * (temperature_C - 25.0)
+    Kw = 10 ** (-pKw)
+
+    def alkalinity_residual(pH_val: float) -> float:
+        H = 10 ** (-pH_val)
+        HCO3 = K1 * CO2 / H
+        CO3 = K1 * K2 * CO2 / H ** 2
+        return (HCO3 + 2 * CO3 + Kw / H - H) - TA
+
+    # TA increases monotonically with pH, so bisect. The bracket spans far
+    # more than any realistic seawater pH.
+    lo, hi = 4.0, 12.0
+    if alkalinity_residual(lo) * alkalinity_residual(hi) > 0:
+        raise ValueError(
+            "No equilibrium pH in range 4-12 for pCO2={:.1f} uatm, "
+            "TA={:.1f} umol/kg".format(pCO2_uatm, alkalinity_umol_kg)
+        )
+
+    for _ in range(200):
+        mid = (lo + hi) / 2.0
+        if alkalinity_residual(lo) * alkalinity_residual(mid) <= 0:
+            hi = mid
+        else:
+            lo = mid
+    pH = (lo + hi) / 2.0
+
+    H = 10 ** (-pH)
+    DIC_mol_kg = CO2 + K1 * CO2 / H + K1 * K2 * CO2 / H ** 2
+
+    return solve_carbonate_system(DIC_mol_kg * 1e6, pH,
+                                  temperature_C, salinity_psu)
+
+
+def acidification_since_preindustrial(temperature_C: float = 15.0,
+                                        salinity_psu: float = 35.0,
+                                        alkalinity_umol_kg: float
+                                        = SURFACE_TA_UMOL_KG) -> dict:
+    """Change in surface carbonate chemistry from pre-industrial to 2025.
+
+    Uses the atmospheric CO₂ values reported in State of the Climate in 2025
+    (BAMS, 2026): 278 ppm pre-industrial, 425.6 ppm in 2025.
+
+    Returns:
+        Dict with both states and the deltas between them
+    """
+    before = equilibrium_from_pCO2(CO2_PPM_PREINDUSTRIAL, alkalinity_umol_kg,
+                                    temperature_C, salinity_psu)
+    after = equilibrium_from_pCO2(CO2_PPM_2025, alkalinity_umol_kg,
+                                   temperature_C, salinity_psu)
+
+    return {
+        "preindustrial": before,
+        "present": after,
+        "delta_pH": after.pH - before.pH,
+        "delta_omega_aragonite": (after.omega_aragonite
+                                  - before.omega_aragonite),
+        "delta_CO3_umol_kg": after.CO3_umol_kg - before.CO3_umol_kg,
+        "delta_DIC_umol_kg": after.DIC_umol_kg - before.DIC_umol_kg,
+        "CO3_fraction_remaining": (after.CO3_umol_kg / before.CO3_umol_kg
+                                   if before.CO3_umol_kg else float("nan")),
+    }
 
 
 def alkalinity_needed_for_pH_shift(current_pH: float, target_pH: float,
@@ -354,9 +496,55 @@ def print_carbonate_report(temperature_C: float = 15.0,
     print("=" * 72)
 
 
+def print_acidification_report(temperature_C: float = 15.0,
+                                salinity_psu: float = 35.0) -> None:
+    """Print acidification driven by *measured* atmospheric CO₂.
+
+    Unlike the table above, which sweeps pH as a free parameter, this starts
+    from the observed atmospheric CO₂ and lets the chemistry decide the pH.
+    """
+    result = acidification_since_preindustrial(temperature_C, salinity_psu)
+    before, after = result["preindustrial"], result["present"]
+
+    print("=" * 72)
+    print("  OCEAN ACIDIFICATION FROM OBSERVED ATMOSPHERIC CO₂")
+    print("=" * 72)
+    print(f"  Conditions: T={temperature_C}°C, S={salinity_psu} psu, "
+          f"TA={SURFACE_TA_UMOL_KG:.0f} μmol/kg (held fixed)")
+    print("  CO₂ values: State of the Climate in 2025 (BAMS, Aug 2026)")
+    print()
+    print(f"  {'Scenario':>22s}  {'CO₂':>8s}  {'pH':>6s}  {'Ω_arag':>7s}  "
+          f"{'CO₃²⁻':>8s}  {'DIC':>8s}")
+    print(f"  {'':>22s}  {'ppm':>8s}  {'':>6s}  {'':>7s}  "
+          f"{'μmol/kg':>8s}  {'μmol/kg':>8s}")
+    print("  " + "-" * 68)
+    for label, ppm, st in [("Pre-industrial (~1750)", CO2_PPM_PREINDUSTRIAL, before),
+                            ("2025 (observed)", CO2_PPM_2025, after)]:
+        print(f"  {label:>22s}  {ppm:8.1f}  {st.pH:6.3f}  "
+              f"{st.omega_aragonite:7.2f}  {st.CO3_umol_kg:8.1f}  "
+              f"{st.DIC_umol_kg:8.1f}")
+
+    print("  " + "-" * 68)
+    print(f"  {'Change':>22s}  {CO2_PPM_2025 - CO2_PPM_PREINDUSTRIAL:+8.1f}  "
+          f"{result['delta_pH']:+6.3f}  {result['delta_omega_aragonite']:+7.2f}  "
+          f"{result['delta_CO3_umol_kg']:+8.1f}  "
+          f"{result['delta_DIC_umol_kg']:+8.1f}")
+    print()
+    print(f"  Carbonate ion remaining: "
+          f"{result['CO3_fraction_remaining'] * 100:.0f}% of pre-industrial")
+    print()
+    print("  This is the gap local alkalinity enhancement is trying to close.")
+    print("  Note it is a *global* shift driven by a global CO₂ level — a")
+    print("  community device buffers its own plume, not the ocean.")
+    print("=" * 72)
+
+
 if __name__ == "__main__":
     print("Ocean Carbonate System — Demonstration\n")
     print_carbonate_report()
+
+    print("\n")
+    print_acidification_report()
 
     print("\n\nPre-industrial vs current vs future (RCP 8.5 2100):\n")
     scenarios = [
