@@ -11,13 +11,19 @@ import math
 import pytest
 
 from carbonate_system import (
+    CO2_PPM_2025,
+    CO2_PPM_PREINDUSTRIAL,
+    SURFACE_TA_UMOL_KG,
     CarbonateState,
+    acidification_since_preindustrial,
     alkalinity_needed_for_pH_shift,
     aragonite_Ksp,
     calcite_Ksp,
     calcium_concentration,
     carbonate_K1,
     carbonate_K2,
+    equilibrium_from_pCO2,
+    henry_K0,
     solve_carbonate_system,
 )
 
@@ -210,6 +216,120 @@ def test_electrolysis_parameters_are_physically_plausible():
     result = alkalinity_needed_for_pH_shift(8.05, 8.15, 2050.0, 15.0, 35.0)
     assert 1.5 < result["cell_voltage_V"] < 3.0
     assert 0.0 < result["faradaic_efficiency"] <= 1.0
+
+
+# --- Henry's law ---
+
+def test_henry_K0_matches_weiss_1974():
+    """Weiss (1974): K0 = 2.839e-2 mol/kg/atm at 25 degC, S=35."""
+    assert henry_K0(25.0, 35.0) == pytest.approx(2.839e-2, rel=0.01)
+
+
+def test_CO2_more_soluble_in_cold_water():
+    """The reason cold high-latitude water takes up the most CO2."""
+    assert henry_K0(0.0, 35.0) > henry_K0(25.0, 35.0)
+
+
+def test_CO2_less_soluble_in_saltier_water():
+    assert henry_K0(15.0, 35.0) < henry_K0(15.0, 20.0)
+
+
+# --- Equilibrium with a given atmosphere ---
+
+def test_equilibrium_round_trips_through_pCO2():
+    """Solving for pH from pCO2 then recomputing pCO2 must return the input."""
+    for ppm in (278.0, 350.0, 425.6, 700.0):
+        state = equilibrium_from_pCO2(ppm, SURFACE_TA_UMOL_KG, 15.0, 35.0)
+        assert state.pCO2_uatm == pytest.approx(ppm, rel=1e-6)
+
+
+def test_preindustrial_atmosphere_gives_observed_preindustrial_pH():
+    """278 ppm should reproduce a surface pH near the accepted ~8.17-8.2."""
+    state = equilibrium_from_pCO2(CO2_PPM_PREINDUSTRIAL,
+                                  SURFACE_TA_UMOL_KG, 15.0, 35.0)
+    assert 8.15 < state.pH < 8.25
+
+
+def test_2025_atmosphere_gives_observed_modern_pH():
+    """425.6 ppm should reproduce today's surface pH near ~8.03-8.06.
+
+    This is an end-to-end check on K0, K1 and K2 together: an independent
+    measurement (atmospheric CO2) has to reproduce an independent observation
+    (surface ocean pH) through the module's constants alone.
+    """
+    state = equilibrium_from_pCO2(CO2_PPM_2025, SURFACE_TA_UMOL_KG, 15.0, 35.0)
+    assert 8.00 < state.pH < 8.08
+
+
+def test_rising_CO2_lowers_pH_and_saturation():
+    low = equilibrium_from_pCO2(278.0, SURFACE_TA_UMOL_KG, 15.0, 35.0)
+    high = equilibrium_from_pCO2(800.0, SURFACE_TA_UMOL_KG, 15.0, 35.0)
+
+    assert high.pH < low.pH
+    assert high.omega_aragonite < low.omega_aragonite
+    assert high.CO3_umol_kg < low.CO3_umol_kg
+    assert high.DIC_umol_kg > low.DIC_umol_kg   # ocean absorbs carbon
+
+
+def test_higher_alkalinity_raises_equilibrium_pH():
+    """This is the whole premise of alkalinity enhancement."""
+    low = equilibrium_from_pCO2(CO2_PPM_2025, 2200.0, 15.0, 35.0)
+    high = equilibrium_from_pCO2(CO2_PPM_2025, 2400.0, 15.0, 35.0)
+
+    assert high.pH > low.pH
+    assert high.omega_aragonite > low.omega_aragonite
+
+
+def test_equilibrium_uses_documented_defaults():
+    explicit = equilibrium_from_pCO2(CO2_PPM_2025, SURFACE_TA_UMOL_KG, 15.0, 35.0)
+    implicit = equilibrium_from_pCO2(CO2_PPM_2025)
+    assert implicit.pH == pytest.approx(explicit.pH)
+
+
+def test_equilibrium_rejects_unbracketable_input():
+    """An absurd alkalinity has no solution in pH 4-12 and must not silently
+    return a bracket endpoint."""
+    with pytest.raises(ValueError):
+        equilibrium_from_pCO2(425.6, alkalinity_umol_kg=-5000.0)
+
+
+# --- Acidification since pre-industrial ---
+
+def test_acidification_matches_observed_pH_decline():
+    """Observed decline since pre-industrial is roughly 0.1-0.2 pH units."""
+    result = acidification_since_preindustrial(15.0, 35.0)
+    assert -0.25 < result["delta_pH"] < -0.10
+
+
+def test_acidification_reduces_carbonate_and_saturation():
+    result = acidification_since_preindustrial(15.0, 35.0)
+
+    assert result["delta_omega_aragonite"] < 0
+    assert result["delta_CO3_umol_kg"] < 0
+    assert result["delta_DIC_umol_kg"] > 0   # the carbon went into the ocean
+
+
+def test_carbonate_ion_loss_is_in_the_published_range():
+    """Reported declines in surface carbonate ion are ~16-30%."""
+    fraction = acidification_since_preindustrial(15.0, 35.0)["CO3_fraction_remaining"]
+    assert 0.70 < fraction < 0.84
+
+
+def test_acidification_holds_at_tropical_temperatures():
+    """Warm reef water stays better saturated but still loses ground."""
+    cool = acidification_since_preindustrial(15.0, 35.0)
+    warm = acidification_since_preindustrial(27.0, 35.0)
+
+    assert warm["present"].omega_aragonite > cool["present"].omega_aragonite
+    assert warm["delta_omega_aragonite"] < 0
+
+
+def test_reported_CO2_constants_match_the_2025_report():
+    """State of the Climate in 2025: 425.6 ppm, 53% above ~278 ppm."""
+    assert CO2_PPM_2025 == pytest.approx(425.6)
+    assert CO2_PPM_PREINDUSTRIAL == pytest.approx(278.0)
+    increase = (CO2_PPM_2025 - CO2_PPM_PREINDUSTRIAL) / CO2_PPM_PREINDUSTRIAL
+    assert increase == pytest.approx(0.53, abs=0.005)
 
 
 def test_pH_buffering_is_within_community_scale_power():

@@ -102,9 +102,16 @@ under-justified.
    but nothing checks that the pH scales stay consistent when results are
    combined in `ocean_restoration_simulation`. *Test:* make the scale explicit
    at each interface.
-9. **`S_factor` in `carbonate_system.py:197` is computed and discarded.**
+9. **`S_factor` in `carbonate_system.py` is computed and discarded.**
    Harmless, but it suggests the Revelle expression was mid-edit when it
    landed — worth resolving alongside item 1.
+10. **`equilibrium_from_pCO2()` omits borate alkalinity.** It uses the same
+    carbonate-only TA definition as the rest of the module, but real seawater
+    TA includes ~100 μmol/kg of borate. Absolute pH from an observed TA will
+    therefore be slightly off; *differences* between two scenarios at the same
+    TA are much more reliable, which is how the acidification comparison uses
+    it. *Test:* add borate (Uppström 1974 total boron, Dickson 1990 K_B) and
+    measure how far the absolute pH moves.
 
 When one of these is resolved, add a row to the round table above. If a claim
 in the live docs turns out to be wrong, move it here rather than deleting it.

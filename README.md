@@ -28,6 +28,21 @@ Not all energy sources are equal. Here is what the physics actually gives you at
 
 ## Scientific Foundation
 
+### Climate context (2025 observations)
+
+From [State of the Climate in 2025](https://journals.ametsoc.org/view/journals/bams/107/8/2026BAMSStateoftheClimate.1.xml) (BAMS vol. 107 no. 8, published 10 August 2026; 625 scientists, 60 countries) — the figures that bear on what this project models:
+
+| Indicator | 2025 value | Relevance here |
+|---|---|---|
+| Atmospheric CO₂ | 425.6 ± 0.1 ppm (+53% vs pre-industrial) | Sets the equilibrium pH the carbonate model solves for |
+| Ocean heat content (0–2000 m) | Record high | Oceans hold ~90% of excess trapped heat |
+| Sea surface temperature | 3rd highest in 172 years, despite cool ENSO | Temperature is an input to every module here |
+| Marine heatwaves | **87%** of the ocean surface saw at least one | The stressor local restoration is responding to |
+
+**Read this as scale, not as a mandate.** A community device buffers its own plume — meters to hundreds of meters. It does not move any number in that table. Ocean pH is set by global CO₂; local buffering helps a local ecosystem survive while the root cause is addressed elsewhere. This is triage, not cure.
+
+The report's other headline findings — Arctic sea-ice age collapse, 38 consecutive years of glacier loss, record Antarctic warmth, sea level at 111.2 mm above the 1993 baseline, 97 named tropical cyclones — are not integrated here because none of them is an input to, or a consequence of, the physics in `equations/`. They are not less important; they are just not what this code computes.
+
 ### Iron Fertilization
 
 Iron limits phytoplankton growth across ~30% of the ocean surface (the "High-Nutrient Low-Chlorophyll" regions). Adding small amounts of bioavailable iron (0.1–1.0 μg/L as dissolved Fe²⁺) stimulates phytoplankton blooms that:
@@ -42,7 +57,21 @@ This has been demonstrated in 13+ open-ocean experiments (SOIREE, SOFeX, LOHAFEX
 
 ### Ocean Alkalinity Enhancement
 
-Ocean acidification (current pH ~8.05, pre-industrial ~8.18) reduces carbonate ion availability, threatening calcifying organisms. Electrochemical alkalinity enhancement uses electrical energy to shift the carbonate equilibrium:
+Ocean acidification reduces carbonate ion availability, threatening calcifying organisms.
+
+The driver is measured, not modelled. [State of the Climate in 2025](https://journals.ametsoc.org/view/journals/bams/107/8/2026BAMSStateoftheClimate.1.xml) (BAMS, August 2026) reports atmospheric CO₂ at **425.6 ± 0.1 ppm**, 53% above the ~278 ppm pre-industrial baseline. Feeding those two numbers into `equilibrium_from_pCO2()` — holding alkalinity fixed at 2300 μmol/kg, 15 °C, S=35 — gives:
+
+| | CO₂ (ppm) | pH | Ω_arag | CO₃²⁻ (μmol/kg) |
+|---|---|---|---|---|
+| Pre-industrial | 278.0 | 8.192 | 3.30 | 215.6 |
+| 2025 (observed) | 425.6 | 8.034 | 2.43 | 158.8 |
+| **Change** | **+147.6** | **−0.159** | **−0.87** | **−56.8** |
+
+Carbonate ion is down to **74% of pre-industrial**. Run `python equations/carbonate_system.py` to regenerate this table.
+
+That the module reproduces the observed modern surface pH (~8.03) from an independent measurement of atmospheric CO₂ is an end-to-end check on K₀, K₁ and K₂ together — it is pinned by a test.
+
+Electrochemical alkalinity enhancement uses electrical energy to shift the carbonate equilibrium:
 
 ```
 CO₂ + H₂O ⇌ H₂CO₃ ⇌ H⁺ + HCO₃⁻ ⇌ 2H⁺ + CO₃²⁻
@@ -163,6 +192,8 @@ exists, the test asserts against the paper the module cites:
 | Fe²⁺ half-life of minutes at pH 8, 25 °C | Millero et al. (1987) |
 | Fe(III) solubility 0.07–0.6 nM at pH 8 | Liu & Millero (2002) |
 | [Ca²⁺] = 0.01028 mol/kg at S=35 | Riley & Tongudai (1967) |
+| K₀ = 2.839×10⁻² mol/kg/atm at 25 °C, S=35 | Weiss (1974) |
+| 425.6 ppm reproduces surface pH ~8.03 | State of the Climate in 2025 |
 
 The rest cover scaling laws (wave power as Hs², oxidation rate as [OH⁻]²),
 conservation (carbonate species summing to DIC, charge matching Faraday's law),
@@ -270,6 +301,8 @@ We welcome contributions in:
 - Boyd, P.W. et al. (2007). Mesoscale iron enrichment experiments 1993–2005. *Science*, 315(5812), 612-617.
 - Falnes, J. (2007). A review of wave-energy extraction. *Marine Structures*, 20(4), 185-201.
 - Rau, G.H. et al. (2013). Electrochemical CO₂ capture and storage with hydrogen generation. *PNAS*, 110(32), 12885.
+- Weiss, R.F. (1974). Carbon dioxide in water and seawater: the solubility of a non-ideal gas. *Marine Chemistry*, 2(3), 203-215.
+- Blunden, J. & Boyer, T., Eds. (2026). [State of the Climate in 2025](https://journals.ametsoc.org/view/journals/bams/107/8/2026BAMSStateoftheClimate.1.xml). *Bulletin of the American Meteorological Society*, 107(8), Si–S484.
 
 ## License
 
