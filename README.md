@@ -306,4 +306,4 @@ We welcome contributions in:
 
 ## License
 
-MIT License — Use freely for ocean restoration research and deployment.
+CC0 1.0 Universal — Use freely for ocean restoration research and deployment.
