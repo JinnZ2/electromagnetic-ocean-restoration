@@ -1,3 +1,5 @@
+Read [READ_ME_THIS_WAY.md](READ_ME_THIS_WAY.md) first.
+
 # Electromagnetic Ocean Restoration
 
 **Community-Deployable Systems for Marine Ecosystem Restoration**
@@ -306,4 +308,6 @@ We welcome contributions in:
 
 ## License
 
-MIT License — Use freely for ocean restoration research and deployment.
+Owner-authored work in this repository is dedicated to the public domain under CC0 1.0 Universal. See [LICENSE](LICENSE) and [LICENSE_HISTORY.md](LICENSE_HISTORY.md).
+
+The `legacy/` directory is retained as a historical record and contains its original MIT wording; that wording is preserved as provenance, not as a different current repository license. Copies obtained before 2026-10-15 under MIT remain available to their holders under those MIT terms. Any third-party material, if added, remains subject to its own notices and terms.

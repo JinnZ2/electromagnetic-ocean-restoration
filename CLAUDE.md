@@ -173,3 +173,8 @@ Without this, the first push of a new branch
 fails the tracking-ref check even when the
 commit landed.
 <!-- /clone-refspec-note v1.1 -->
+
+
+## License scope
+
+The owner dedicates owner-authored work in this repository to the public domain under CC0 1.0 Universal; see `LICENSE`. The `legacy/` records are retained as historical specimens, including their original license wording. That wording is documented in `LICENSE_HISTORY.md`; copies obtained earlier under MIT retain those MIT terms for their holders. Any third-party material retains its own notices and terms.
