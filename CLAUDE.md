@@ -24,7 +24,7 @@
 │   ├── test_iron_chemistry.py
 │   ├── test_carbonate_system.py
 │   └── test_integration.py             # End-to-end + CLI subprocess tests
-├── .github/workflows/tests.yml         # CI: pytest 3.8–3.13 + stdlib-only check
+├── .github/workflows/tests.yml         # CI: pytest 3.10–3.13, 3.x + stdlib-only check
 ├── legacy/                             # Superseded claims + falsification log
 │   ├── README.md                       # What was ruled out, by what argument
 │   ├── 2025-11-30-README.md            # Original docs, verbatim
@@ -138,10 +138,10 @@ resolved.
 
 ## Technology Stack
 
-- **Language**: Python 3.8+
+- **Language**: Python 3.10+
 - **Dependencies**: Standard library only (math, dataclasses, argparse)
 - **Tests**: pytest (`tests/`), the only dev dependency
-- **CI**: GitHub Actions — pytest on Python 3.8–3.13, plus a job that installs
+- **CI**: GitHub Actions — pytest on Python 3.10–3.13 and current 3.x, plus a job that installs
   nothing and runs every entry point to enforce the stdlib-only guarantee
 - **No build system or packaging** (modules are run directly, not installed)
 

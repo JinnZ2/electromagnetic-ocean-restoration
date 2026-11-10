@@ -127,7 +127,7 @@ electromagnetic-ocean-restoration/
 │   ├── test_iron_chemistry.py
 │   ├── test_carbonate_system.py
 │   └── test_integration.py
-├── .github/workflows/tests.yml         # CI: pytest on Python 3.8–3.13
+├── .github/workflows/tests.yml         # CI: pytest on Python 3.10–3.13 and current 3.x
 ├── legacy/                             # Superseded claims + falsification log
 │   ├── README.md                       # What was ruled out, and by what argument
 │   ├── 2025-11-30-README.md
