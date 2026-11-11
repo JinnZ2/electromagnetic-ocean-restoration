@@ -19,13 +19,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # 3.8 is not in the ubuntu-latest tool cache any more.
-          - { python-version: "3.8", os: ubuntu-22.04 }
-          - { python-version: "3.9", os: ubuntu-latest }
+          # Floor is 3.10. The 3.8 job (ubuntu-22.04) was dropped 2026-11-10.
           - { python-version: "3.10", os: ubuntu-latest }
           - { python-version: "3.11", os: ubuntu-latest }
           - { python-version: "3.12", os: ubuntu-latest }
           - { python-version: "3.13", os: ubuntu-latest }
+          - { python-version: "3.x", os: ubuntu-latest }
 
     steps:
       - uses: actions/checkout@v4
